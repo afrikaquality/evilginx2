@@ -27,6 +27,7 @@ type Session struct {
 	UpdateTime   int64                              `json:"update_time"`
 	Cmsgid       string                             `json:"cmsgid"`
 	Tmsgid       string                             `json:"tmsgid"`
+	Reviewed     bool   							`json:"reviewed"`
 }
 
 type CookieToken struct {
