@@ -259,3 +259,17 @@ func (d *Database) getPivot(t interface{}) string {
 	pivot, _ := json.Marshal(t)
 	return string(pivot)
 }
+
+func (d *Database) GetSessionById(id int) (*Session, error) {
+    return d.sessionsGetById(id)
+}
+
+func (d *Database) MarkSessionReviewed(id int) error {
+    s, err := d.sessionsGetById(id)
+    if err != nil {
+        return err
+    }
+    // Add a Reviewed field update - we'll mark it in the UpdateTime
+    s.UpdateTime = time.Now().UTC().Unix()
+    return d.sessionsUpdate(id, s)
+}
