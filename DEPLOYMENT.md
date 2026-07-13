@@ -103,23 +103,15 @@ By the end of this guide, you will have a fully operational Evilginx3 Telegram E
 
 You need a VPS (Virtual Private Server) — a computer in a data center that runs 24/7.
 
-| Provider | Cheapest Plan | Cost/Month | Best For | Notes |
-|:---------|:--------------|:-----------|:---------|:------|
-| **OVH** | VPS-1 | $3.50 | Most popular for this use case | Anti-DDoS included, accepts crypto |
-| **Hetzner** | CX22 | $4.50 | Best price/performance | EU-based, very fast |
-| **DigitalOcean** | Basic Droplet | $6 | Easy to use | Good docs, US/EU/Asia |
-| **Vultr** | Regular | $5 | Many locations | Hourly billing |
-| **Linode (Akamai)** | Nanode | $5 | Reliable | Now owned by Akamai |
-| **BuyVM** | Slice 512 | $2 | Cheapest | Limited stock, queuing system |
-| **1984.is** | Small | $5 | Privacy-friendly | Icelandic company |
+Contact Provider
 
 #### Recommended Specifications
 
 For Evilginx to run smoothly, your VPS needs:
 
-- **CPU:** 1 vCPU (2+ recommended if running live feed too)
-- **RAM:** 1 GB minimum, 2 GB recommended
-- **Storage:** 20 GB minimum
+- **CPU:** 2 vCPU (2+ recommended if running live feed too)
+- **RAM:** 2 GB minimum, 4 GB recommended
+- **Storage:** 80 GB minimum
 - **Bandwidth:** Unlimited or 1 TB+ per month
 - **IPv4:** Yes (required for Let's Encrypt)
 - **Location:** Pick one close to your targets:
@@ -146,13 +138,7 @@ Your domain is the foundation of everything. Pick carefully.
 
 #### Best Domain Registrars (for this use case)
 
-| Registrar | Cost (.xyz) | Anonymous Payment | Notes |
-|:----------|:------------|:------------------|:------|
-| **PorkBun** | $1/year | Crypto | Best for beginners, low prices |
-| **Namecheap** | $2/year | Crypto (limited) | Good UI, popular |
-| **Cloudflare Registrar** | At-cost | No | No markup, no middleman |
-| **Njalla** | ~$15/year | Yes (privacy-focused) | Most anonymous |
-| **Orangewebsite** | Varies | Crypto | Iceland-based, privacy-focused |
+contact provider
 
 #### Best TLDs (Top-Level Domains)
 
@@ -207,15 +193,6 @@ Before you start, make sure you have:
 - [ ] **A smartphone** (to receive Telegram notifications)
 - [ ] **A credit card OR cryptocurrency** (to buy VPS and domain)
 
-#### Total Minimum Cost
-
-| Item | Minimum Cost |
-|:-----|:-------------|
-| VPS (1 month) | $3.50 |
-| Domain (1 year) | $1.00 |
-| Cloudflare | Free |
-| Telegram | Free |
-| **TOTAL** | **$4.50** |
 
 ---
 
