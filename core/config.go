@@ -949,3 +949,29 @@ func (c *Config) GetUnauthUrl() string {
 func (c *Config) GetLureGenerationStrategy() string {
     return "random"
 }
+
+func (c *Config) SetHttpPort(port int) {
+	c.general.HttpPort = port
+	c.cfg.Set(CFG_GENERAL, c.general)
+	c.cfg.WriteConfig()
+}
+
+func (c *Config) GetPhishletsDir() string {
+	if c.phishletsDir != "" {
+		return c.phishletsDir
+	}
+	return "phishlets"
+}
+
+func GenRandomLureString(strategy string) string {
+	switch strategy {
+	case "random":
+		return GenRandomString(8)
+	default:
+		return GenRandomString(8)
+	}
+}
+
+func AutomateCampaignFromLure(baseURL string, phishletName string, cfg *Config) {
+	log.Info("Campaign automation placeholder: lure=%s phishlet=%s (configure GoPhish for full automation)", baseURL, phishletName)
+}
