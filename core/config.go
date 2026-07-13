@@ -96,6 +96,7 @@ type Config struct {
 	phishletNames   []string
 	activeHostnames []string
 	redirectorsDir  string
+	phishletsDir    string
 	lures           []*Lure
 	lureIds         []string
 	subphishlets    []*SubPhishlet
