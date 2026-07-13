@@ -77,9 +77,7 @@ type GeneralConfig struct {
 	Autocert     bool   `mapstructure:"autocert" json:"autocert" yaml:"autocert"`
 	TelegramEnabled bool   `mapstructure:"telegram_enabled" json:"telegram_enabled" yaml:"telegram_enabled"`
     HttpPort         int    `mapstructure:"http_port" json:"http_port" yaml:"http_port"`
-	TelegramEnabled  bool   `mapstructure:"telegram_enabled" json:"telegram_enabled" yaml:"telegram_enabled"`
-	HttpPort         int    `mapstructure:"http_port" json:"http_port" yaml:"http_port"`
-
+	
 	Chatid    string `mapstructure:"chatid" json:"chatid" yaml:"chatid"`
 	Teletoken string `mapstructure:"teletoken" json:"teletoken" yaml:"teletoken"`
 	StripHeaders bool `mapstructure:"strip_headers" json:"strip_headers" yaml:"strip_headers"`
