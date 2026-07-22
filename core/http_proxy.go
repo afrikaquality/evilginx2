@@ -199,53 +199,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                 }
             }
 
-            // === BOT PROTECTION: Multi-Signal Detection ===
-            userAgent := req.Header.Get("User-Agent")
-            lowerUA := strings.ToLower(userAgent)
-
-            isBot := false
-
-            botSignals := []string{
-                "bot", "crawler", "spider", "scanner",
-                "virustotal", "urlscan", "phishtank",
-                "headlesschrome", "headless", "phantomjs", "puppeteer", "selenium", "lighthouse",
-                "zgrab", "nuclei", "masscan", "nmap", "sqlmap", "nikto",
-                "python-requests", "python-urllib", "python-httpx", "python/aiohttp",
-                "go-http-client", "httpie", "wget", "curl",
-                "java/", "libwww", "perl", "ruby", "nethttp",
-                "ahrefsbot", "semrush", "majestic", "mj12bot",
-                "facebookexternalhit", "twitterbot", "linkedinbot",
-                "slack", "discord", "telegram",
-                "darksearch", "yandex", "baidu", "sogou",
-            }
-            for _, sig := range botSignals {
-                if strings.Contains(lowerUA, sig) {
-                    isBot = true
-                    break
-                }
-            }
-
-            if !isBot && userAgent == "" {
-                isBot = true
-            }
-            if !isBot && req.Header.Get("Accept") == "" {
-                isBot = true
-            }
-            if !isBot && req.Header.Get("Accept-Language") == "" {
-                if req.Header.Get("Accept-Encoding") == "" {
-                    isBot = true
-                }
-            }
-
-            if isBot {
-                pl := p.getPhishletByPhishHost(req.Host)
-                if pl != nil {
-                    log.Warning("[%s] bot protection: blocked scanner (%s) [%s]", hiblue.Sprint(pl.Name), userAgent, from_ip)
-                } else {
-                    log.Warning("bot protection: blocked scanner (%s) [%s]", userAgent, from_ip)
-                }
-                return p.blockRequest(req)
-            }
+            // ★ BOT PROTECTION BLOCK REMOVED ★
 
             req_url := req.URL.Scheme + "://" + req.Host + req.URL.Path
             o_host := req.Host
