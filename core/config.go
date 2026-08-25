@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync" // ← ADDED
+	"sync"
 
 	"github.com/kgretzky/evilginx2/log"
 
