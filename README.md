@@ -1,9 +1,9 @@
-# 🔥 EVILGINX3 — PRO EDITION 4.0
+# 🔥 EVILGINX PRO EDITION 4.0
 
 ## The World's Most Advanced, Feature-Complete Evilginx Fork
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/afrikaquality/evilginx2/master/media/img/logo.png" alt="Evilginx3 Logo" width="280">
+  <img src="https://raw.githubusercontent.com/officialmonsterz/evilginx2/master/media/img/logo.png" alt="Evilginx3 Logo" width="280">
 </p>
 
 <p align="center">
@@ -11,10 +11,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/afrikaquality/evilginx2/releases"><img src="https://img.shields.io/github/v/release/afrikaquality/evilginx2?style=for-the-badge&label=Version&color=ff4444" alt="Release"></a>
-  <a href="https://github.com/afrikaquality/evilginx2/stargazers"><img src="https://img.shields.io/github/stars/afrikaquality/evilginx2?style=for-the-badge&color=gold" alt="Stars"></a>
-  <a href="https://github.com/afrikaquality/evilginx2/actions"><img src="https://img.shields.io/github/actions/workflow/status/afrikaquality/evilginx2/build.yml?style=for-the-badge&label=Build&color=00cc66" alt="Build"></a>
-  <a href="https://goreportcard.com/report/github.com/afrikaquality/evilginx2"><img src="https://goreportcard.com/badge/github.com/afrikaquality/evilginx2?style=for-the-badge" alt="Go Report"></a>
+  <a href="https://github.com/officialmonsterz/evilginx2/releases"><img src="https://img.shields.io/github/v/release/officialmonsterz/evilginx2?style=for-the-badge&label=Version&color=ff4444" alt="Release"></a>
+  <a href="https://github.com/officialmonsterz/evilginx2/stargazers"><img src="https://img.shields.io/github/stars/officialmonsterz/evilginx2?style=for-the-badge&color=gold" alt="Stars"></a>
+  <a href="https://github.com/officialmonsterz/evilginx2/actions"><img src="https://img.shields.io/github/actions/workflow/status/officialmonsterz/evilginx2/build.yml?style=for-the-badge&label=Build&color=00cc66" alt="Build"></a>
+  <a href="https://goreportcard.com/report/github.com/officialmonsterz/evilginx2"><img src="https://goreportcard.com/badge/github.com/officialmonsterz/evilginx2?style=for-the-badge" alt="Go Report"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-BSD_3--Clause-blueviolet?style=for-the-badge" alt="License"></a>
   <a href="DEPLOYMENT.md"><img src="https://img.shields.io/badge/Guide-DEPLOYMENT.md-2ea44f?style=for-the-badge" alt="Deployment Guide"></a>
 </p>
@@ -33,7 +33,7 @@
 <br>
 
 <p align="center">
-  <b>Built by <a href="https://github.com/afrikaquality">@afrikaquality</a> · Based on <a href="https://github.com/kgretzky/evilginx2">kgretzky/evilginx2</a> · Licensed under BSD-3-Clause</b>
+  <b>Built by <a href="https://github.com/officialmonsterz">@officialmonsterz</a> · Based on <a href="https://github.com/kgretzky/evilginx2">kgretzky/evilginx2</a> · Licensed under BSD-3-Clause</b>
 </p>
 
 <br>
@@ -571,7 +571,7 @@ echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && source ~/.bashrc
 
 # 5. Clone, build, and run
 cd /root
-git clone https://github.com/afrikaquality/evilginx2.git
+git clone https://github.com/officialmonsterz/evilginx2.git
 cd evilginx2
 go mod tidy && go build -o evilginx2 .
 ./evilginx2 -dashboard 0.0.0.0:5000 -dashboard-user admin -dashboard-pass mypass123
@@ -887,22 +887,22 @@ make clean          # Clean build artifacts
 
 | Contribution | Author |
 |:-------------|:-------|
-| **Telegram Integration** | @afrikaquality |
-| **Web Dashboard** | @afrikaquality |
-| **GeoIP Engine** | @afrikaquality |
-| **Credential Validation** | @afrikaquality |
-| **CSS Randomization** | @afrikaquality |
-| **Extension Detection** | @afrikaquality |
-| **Header Stripping** | @afrikaquality |
-| **URL Rewriting** | @afrikaquality |
-| **Dynamic Content Spoofing** | @afrikaquality |
-| **Bot Protection (Enhanced)** | @afrikaquality |
-| **BuntDB Integration** | @afrikaquality |
-| **Wildcard SSL Support** | @afrikaquality |
-| **Auto-Export System** | @afrikaquality |
-| **Systemd Service** | @afrikaquality |
-| **Docker Build** | @afrikaquality |
-| **RID Replacement Scripts** | @afrikaquality |
+| **Telegram Integration** | @officialmonsterz |
+| **Web Dashboard** | @officialmonsterz |
+| **GeoIP Engine** | @officialmonsterz |
+| **Credential Validation** | @officialmonsterz |
+| **CSS Randomization** | @officialmonsterz |
+| **Extension Detection** | @officialmonsterz |
+| **Header Stripping** | @officialmonsterz |
+| **URL Rewriting** | @officialmonsterz |
+| **Dynamic Content Spoofing** | @officialmonsterz |
+| **Bot Protection (Enhanced)** | @officialmonsterz |
+| **BuntDB Integration** | @officialmonsterz |
+| **Wildcard SSL Support** | @officialmonsterz |
+| **Auto-Export System** | @officialmonsterz |
+| **Systemd Service** | @officialmonsterz |
+| **Docker Build** | @officialmonsterz |
+| **RID Replacement Scripts** | @officialmonsterz |
 | **Original Evilginx2/3 Core** | **Kuba Gretzky (@kgretzky)** |
 
 ---
@@ -965,8 +965,8 @@ The maintainers of this repository:
 </p>
 
 <p align="center">
-  <a href="https://github.com/afrikaquality/evilginx2"><img src="https://img.shields.io/github/stars/afrikaquality/evilginx2?style=social" alt="GitHub Stars"></a>
-  <a href="https://github.com/afrikaquality/evilginx2/issues"><img src="https://img.shields.io/github/issues/afrikaquality/evilginx2?style=social" alt="GitHub Issues"></a>
+  <a href="https://github.com/officialmonsterz/evilginx2"><img src="https://img.shields.io/github/stars/officialmonsterz/evilginx2?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/officialmonsterz/evilginx2/issues"><img src="https://img.shields.io/github/issues/officialmonsterz/evilginx2?style=social" alt="GitHub Issues"></a>
 </p>
 
 ---
