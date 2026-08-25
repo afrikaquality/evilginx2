@@ -23,8 +23,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/kgretzky/evilginx2/log"
+	
 )
 
 // ValidationResult holds the result of a credential validation attempt.
