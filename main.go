@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"os/signal"
+	"syscall"
 	
 
 	"github.com/caddyserver/certmagic"
@@ -271,5 +273,13 @@ func main() {
 		}
 	}()
 
-	t.DoWork()
+	// Run the console in the background. Under systemd stdin is /dev/null,
+	// so reading the keyboard would exit immediately. This keeps the process
+	// alive until systemd sends us a stop signal.
+	go t.DoWork()
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	<-sig
+	log.Info("shutdown signal received — saving config and exiting")
 }
