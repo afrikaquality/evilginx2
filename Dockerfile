@@ -1,5 +1,5 @@
 # ---------- Build stage ----------
-# go.mod in this repo requires go >= 1.25.7, so use a modern toolchain.
+# go.mod in this repo requires go >= 1.25.7, so a modern toolchain is required.
 FROM golang:1.27-alpine AS builder
 
 RUN apk add --no-cache git make gcc musl-dev
