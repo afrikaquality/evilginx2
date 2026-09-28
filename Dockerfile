@@ -1,49 +1,32 @@
-# Stage 1: Build
-FROM golang:1.22-alpine AS builder
+# ---------- Build stage ----------
+FROM golang:1.21-alpine AS builder
 
-RUN apk add --no-cache git ca-certificates build-base
+RUN apk add --no-cache git make gcc musl-dev
 
 WORKDIR /src
-
-# Copy go.mod and go.sum first for better caching
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source code
 COPY . .
 
-# Build evilginx2
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/evilginx .
+RUN go build -o /usr/local/bin/evilginx .
 
-# Stage 2: Runtime
-FROM alpine:latest
+# ---------- Runtime stage ----------
+FROM alpine:3.19
 
-RUN apk add --no-cache ca-certificates tzdata libcap
+RUN apk add --no-cache ca-certificates tzdata bash
 
-# Create evilginx user
-RUN adduser -D -h /home/evilginx evilginx
+# Create the app user (avoid running as root when possible)
+RUN addgroup -S evilginx && adduser -S evilginx -G evilginx
 
-WORKDIR /home/evilginx
+COPY --from=builder /usr/local/bin/evilginx /usr/local/bin/evilginx
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Copy the binary
-COPY --from=builder /build/evilginx /usr/local/bin/evilginx
-
-# Copy phishlets and redirectors
-COPY --from=builder /src/phishlets /home/evilginx/phishlets
-COPY --from=builder /src/redirectors /home/evilginx/redirectors
-
-# Create necessary directories
-RUN mkdir -p /home/evilginx/.evilginx && \
-    chown -R evilginx:evilginx /home/evilginx
-
-# Allow binding to privileged ports
-RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/evilginx
+# Evilginx writes phishlets/, sessions/, certs/ relative to WORKDIR
+WORKDIR /app
+RUN mkdir -p /app/phishlets /app/sessions /app/certs && \
+    chown -R evilginx:evilginx /app
 
 USER evilginx
 
-EXPOSE 53 80 443 5000
+EXPOSE 53/udp 80/tcp 443/tcp
 
-VOLUME ["/home/evilginx/.evilginx"]
-
-ENTRYPOINT ["evilginx"]
-CMD ["-p", "/home/evilginx/phishlets", "-t", "/home/evilginx/redirectors"]
+ENTRYPOINT ["/entrypoint.sh"]
