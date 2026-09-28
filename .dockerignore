@@ -1,7 +1,12 @@
+# .dockerignore
 .git
 .gitignore
+.dockerignore
 *.md
 .DS_Store
 build/
 old/
 vendor/
+sessions/
+certs/
+.env
