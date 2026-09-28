@@ -1,5 +1,5 @@
 #!/bin/sh
-# entrypoint.sh for evilginx2 docker image
+# entrypoint.sh for evilginx docker image
 set -e
 
 APP_DIR=/app
@@ -10,7 +10,7 @@ for d in "$APP_DIR/phishlets" "$APP_DIR/sessions" "$APP_DIR/certs"; do
     [ -d "$d" ] || mkdir -p "$d"
 done
 
-# 2. Seed persistent phishlets volume on FIRST run only
+# 2. Seed the persistent phishlets volume on FIRST run only
 if [ -d "$SEED_PHISHLETS" ]; then
     if [ -z "$(ls -A "$APP_DIR/phishlets" 2>/dev/null)" ]; then
         echo "[entrypoint] Seeding phishlets into $APP_DIR/phishlets ..."
@@ -24,10 +24,11 @@ if [ -n "$TG_BOT_TOKEN" ] && [ -n "$TG_CHAT_ID" ]; then
     setsid /usr/local/bin/telegram-watch.sh >/dev/null 2>&1 &
 fi
 
-# 4. Fix volume ownership, drop to non-root, run evilginx
+# 4. Fix volume ownership, drop to non-root, run evilginx.
+#    NOTE: this build (v4.0.0) REFUSES to start without -p <phishlets_path>
 if [ "$(id -u)" = "0" ]; then
     chown -R evilginx:evilginx "$APP_DIR" 2>/dev/null || true
-    exec su-exec evilginx:evilginx /usr/local/bin/evilginx "$@"
+    exec su-exec evilginx:evilginx /usr/local/bin/evilginx -p "$APP_DIR/phishlets" "$@"
 fi
 
-exec /usr/local/bin/evilginx "$@"
+exec /usr/local/bin/evilginx -p "$APP_DIR/phishlets" "$@"
