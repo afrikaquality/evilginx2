@@ -1,13 +1,12 @@
 # ---------- Build stage ----------
-FROM golang:1.21-alpine AS builder
+# go.mod in this repo requires go >= 1.25.7, so use a modern toolchain.
+FROM golang:1.27-alpine AS builder
 
 RUN apk add --no-cache git make gcc musl-dev
 
 WORKDIR /src
 COPY . .
 
-# evilginx2 originally predates Go modules - initialize if needed
-RUN go mod init github.com/afrikaquality/evilginx2 2>/dev/null || true
 RUN go mod tidy
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/local/bin/evilginx .
 
@@ -30,8 +29,7 @@ WORKDIR /app
 RUN mkdir -p /app/phishlets /app/sessions /app/certs && \
     chown -R evilginx:evilginx /app
 
-# NOTE: no USER directive here - the entrypoint starts as root
-# (to fix volume ownership), then drops to 'evilginx' via su-exec.
+# Entrypoint starts as root (fixes volume ownership), then drops to 'evilginx'
 EXPOSE 53/udp 53/tcp 80/tcp 443/tcp
 
 ENTRYPOINT ["/entrypoint.sh"]
